@@ -1,10 +1,7 @@
 const mongoose = require('mongoose');
 
+const addressSchema = new mongoose.Schema({});
 
-
-const addressSchema = new mongoose.Schema({
-
-});
 const UserSchema = new mongoose.Schema({
     username: {
         type: String,
@@ -18,6 +15,8 @@ const UserSchema = new mongoose.Schema({
     },
     password: {
         type: String,
+        required: true,
+        select: false  // Password won't be returned by default, but we can explicitly select it
     },
     fullName: {
         firstName: {
@@ -29,16 +28,14 @@ const UserSchema = new mongoose.Schema({
             required: true
         }
     },
-    role:{
+    role: {
         type: String,
         enum: ['user', 'admin'],
         default: 'user'
     },
-    addresses:[
-        addressSchema
-    ]
-})
+    addresses: [addressSchema]
+});
 
-const userModel = mongoose.model('User', UserSchema);
+const userModel = mongoose.models.User || mongoose.model('User', UserSchema);
 
 module.exports = userModel;

@@ -1,0 +1,362 @@
+
+> final_project@1.0.0 test
+> jest
+
+PASS src/__tests__/auth.login.test.js
+  Auth Login Endpoint
+    POST /api/auth/login - Success Cases
+      ✓ Should login a user successfully with valid credentials (295 ms)
+      ✓ Should return user data in response (143 ms)
+      ✓ Should set JWT token in cookies (129 ms)
+    POST /api/auth/login - Error Cases
+      ✓ Should return 401 when user does not exist (3 ms)
+      ✓ Should return 401 when password is incorrect (122 ms)
+      ✓ Should return 400 when email is missing (2 ms)
+      ✓ Should return 400 when password is missing (1 ms)
+      ✓ Should return 400 when email format is invalid (2 ms)
+      ✓ Should return 400 when request body is empty (2 ms)
+    POST /api/auth/login - Edge Cases
+      ✓ Should be case-sensitive for email (if database is case-sensitive) (71 ms)
+      ✓ Should handle whitespace in password correctly (134 ms)
+      ✓ Should handle very long password input (131 ms)
+
+FAIL src/__tests__/auth.me.test.js
+  Auth Me Endpoint
+    GET /api/auth/me - Success Cases
+      ✕ Should return current user data with valid token (255 ms)
+      ✕ Should return complete user profile with all fields (81 ms)
+      ✕ Should not return password in response (80 ms)
+    GET /api/auth/me - Authentication Error Cases
+      ✕ Should return 401 when no token is provided (3 ms)
+      ✕ Should return 401 when Authorization header is missing (3 ms)
+      ✕ Should return 401 with invalid token format (2 ms)
+      ✕ Should return 401 with malformed Bearer token (2 ms)
+      ✕ Should return 401 with invalid JWT token (2 ms)
+      ✕ Should return 401 with token signed with different secret (77 ms)
+    GET /api/auth/me - Token Expiration Cases
+      ✕ Should return 401 with expired token (172 ms)
+    GET /api/auth/me - User Not Found Cases
+      ✕ Should return 404 when user from token does not exist (1 ms)
+    GET /api/auth/me - Header Format Cases
+      ✕ Should handle Bearer token with correct format (80 ms)
+      ✕ Should reject token without Bearer prefix (71 ms)
+      ✓ Should be case-insensitive for Bearer prefix (71 ms)
+    GET /api/auth/me - Response Format Cases
+      ✕ Should return response with success flag (84 ms)
+      ✕ Should return user with id field (73 ms)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Success Cases › Should return current user data with valid token
+
+    expected 200 "OK", got 401 "Unauthorized"
+
+      47 |         .get('/api/auth/me')
+      48 |         .set('Authorization', `Bearer ${token}`)
+    > 49 |         .expect(200);
+         |          ^
+      50 |
+      51 |       expect(response.body.success).toBe(true);
+      52 |       expect(response.body.user).toBeDefined();
+
+      at Object.expect (src/__tests__/auth.me.test.js:49:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Success Cases › Should return complete user profile with all fields
+
+    expected 200 "OK", got 401 "Unauthorized"
+
+      78 |         .get('/api/auth/me')
+      79 |         .set('Authorization', `Bearer ${token}`)
+    > 80 |         .expect(200);
+         |          ^
+      81 |
+      82 |       expect(response.body.user.id).toBe(user._id.toString());
+      83 |       expect(response.body.user.username).toBe('profiletest');
+
+      at Object.expect (src/__tests__/auth.me.test.js:80:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Success Cases › Should not return password in response
+
+    expected 200 "OK", got 401 "Unauthorized"
+
+      112 |         .get('/api/auth/me')
+      113 |         .set('Authorization', `Bearer ${token}`)
+    > 114 |         .expect(200);
+          |          ^
+      115 |
+      116 |       expect(response.body.user.password).toBeUndefined();
+      117 |     });
+
+      at Object.expect (src/__tests__/auth.me.test.js:114:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Authentication Error Cases › Should return 401 when no token is provided
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+      126 |         .expect(401);
+      127 |
+    > 128 |       expect(response.body.success).toBe(false);
+          |                                     ^
+      129 |       expect(response.body.message).toBeDefined();
+      130 |     });
+      131 |
+
+      at Object.toBe (src/__tests__/auth.me.test.js:128:37)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Authentication Error Cases › Should return 401 when Authorization header is missing
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+      135 |         .expect(401);
+      136 |
+    > 137 |       expect(response.body.success).toBe(false);
+          |                                     ^
+      138 |     });
+      139 |
+      140 |     it('Should return 401 with invalid token format', async () => {
+
+      at Object.toBe (src/__tests__/auth.me.test.js:137:37)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Authentication Error Cases › Should return 401 with invalid token format
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+      144 |         .expect(401);
+      145 |
+    > 146 |       expect(response.body.success).toBe(false);
+          |                                     ^
+      147 |     });
+      148 |
+      149 |     it('Should return 401 with malformed Bearer token', async () => {
+
+      at Object.toBe (src/__tests__/auth.me.test.js:146:37)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Authentication Error Cases › Should return 401 with malformed Bearer token
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+      153 |         .expect(401);
+      154 |
+    > 155 |       expect(response.body.success).toBe(false);
+          |                                     ^
+      156 |     });
+      157 |
+      158 |     it('Should return 401 with invalid JWT token', async () => {
+
+      at Object.toBe (src/__tests__/auth.me.test.js:155:37)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Authentication Error Cases › Should return 401 with invalid JWT token
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+      164 |         .expect(401);
+      165 |
+    > 166 |       expect(response.body.success).toBe(false);
+          |                                     ^
+      167 |     });
+      168 |
+      169 |     it('Should return 401 with token signed with different secret', async () => {
+
+      at Object.toBe (src/__tests__/auth.me.test.js:166:37)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Authentication Error Cases › Should return 401 with token signed with different secret
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+      192 |         .expect(401);
+      193 |
+    > 194 |       expect(response.body.success).toBe(false);
+          |                                     ^
+      195 |     });
+      196 |
+      197 |   });
+
+      at Object.toBe (src/__tests__/auth.me.test.js:194:37)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Token Expiration Cases › Should return 401 with expired token
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+      227 |         .expect(401);
+      228 |
+    > 229 |       expect(response.body.success).toBe(false);
+          |                                     ^
+      230 |       expect(response.body.message).toBeDefined();
+      231 |     });
+      232 |
+
+      at Object.toBe (src/__tests__/auth.me.test.js:229:37)
+
+  ● Auth Me Endpoint › GET /api/auth/me - User Not Found Cases › Should return 404 when user from token does not exist
+
+    expected 404 "Not Found", got 401 "Unauthorized"
+
+      249 |         .get('/api/auth/me')
+      250 |         .set('Authorization', `Bearer ${token}`)
+    > 251 |         .expect(404);
+          |          ^
+      252 |
+      253 |       expect(response.body.success).toBe(false);
+      254 |       expect(response.body.message).toBeDefined();
+
+      at Object.expect (src/__tests__/auth.me.test.js:251:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Header Format Cases › Should handle Bearer token with correct format
+
+    expected 200 "OK", got 401 "Unauthorized"
+
+      281 |         .get('/api/auth/me')
+      282 |         .set('Authorization', `Bearer ${token}`)
+    > 283 |         .expect(200);
+          |          ^
+      284 |
+      285 |       expect(response.body.success).toBe(true);
+      286 |     });
+
+      at Object.expect (src/__tests__/auth.me.test.js:283:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Header Format Cases › Should reject token without Bearer prefix
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+      310 |         .expect(401);
+      311 |
+    > 312 |       expect(response.body.success).toBe(false);
+          |                                     ^
+      313 |     });
+      314 |
+      315 |     it('Should be case-insensitive for Bearer prefix', async () => {
+
+      at Object.toBe (src/__tests__/auth.me.test.js:312:37)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Response Format Cases › Should return response with success flag
+
+    expected 200 "OK", got 401 "Unauthorized"
+
+      371 |         .get('/api/auth/me')
+      372 |         .set('Authorization', `Bearer ${token}`)
+    > 373 |         .expect(200);
+          |          ^
+      374 |
+      375 |       expect(response.body).toHaveProperty('success');
+      376 |       expect(response.body).toHaveProperty('user');
+
+      at Object.expect (src/__tests__/auth.me.test.js:373:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● Auth Me Endpoint › GET /api/auth/me - Response Format Cases › Should return user with id field
+
+    expected 200 "OK", got 401 "Unauthorized"
+
+      399 |         .get('/api/auth/me')
+      400 |         .set('Authorization', `Bearer ${token}`)
+    > 401 |         .expect(200);
+          |          ^
+      402 |
+      403 |       expect(response.body.user).toHaveProperty('id');
+      404 |       expect(response.body.user).toHaveProperty('username');
+
+      at Object.expect (src/__tests__/auth.me.test.js:401:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+PASS src/__tests__/auth.register.test.js
+  Auth Register Endpoint
+    POST /api/auth/register - Success Cases
+      ✓ Should register a new user successfully (243 ms)
+      ✓ Should hash the password before storing (81 ms)
+      ✓ Should set role to "user" by default (86 ms)
+    POST /api/auth/register - Validation Cases
+      ✓ Should return 400 if username is missing (2 ms)
+      ✓ Should return 400 if email is missing (2 ms)
+      ✓ Should return 400 if password is missing (1 ms)
+      ✓ Should return 400 if firstName is missing (1 ms)
+      ✓ Should return 400 if lastName is missing (2 ms)
+    POST /api/auth/register - Duplicate User Cases
+      ✓ Should return 409 if email already exists (84 ms)
+      ✓ Should return 409 if username already exists (73 ms)
+      ✓ Should allow registration with both different email and username (123 ms)
+    POST /api/auth/register - Database Tests
+      ✓ Should persist user data in database (83 ms)
+      ✓ Should not create duplicate users in database (75 ms)
+    POST /api/auth/register - Multiple Users
+      ✓ Should allow registering multiple different users (187 ms)
+      ✓ Should clear database between test suites (1 ms)
+    POST /api/auth/register - Response Format
+      ✓ Should return proper response structure on success (98 ms)
+      ✓ Should not expose password in response (115 ms)
+
+Test Suites: 1 failed, 2 passed, 3 total
+Tests:       15 failed, 30 passed, 45 total
+Snapshots:   0 total
+Time:        2.418 s, estimated 3 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
