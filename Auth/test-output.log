@@ -1,0 +1,183 @@
+
+> final_project@1.0.0 test
+> jest
+
+  console.log
+    Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZTc0NjFjNzUwODliMjZiZTQ4NjA1ZCIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJlbWFpbCI6InRlc3R1c2VyQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzY3NjQ0NDQsImV4cCI6MTc3Njc2ODA0NH0.eeJ6HzLeAeZ9l8PQ24L4nGSOZ66-HO0-ZGcTiwpZ3d0
+
+      at Object.log (src/__tests__/debug-address.test.js:43:13)
+
+  console.log
+    User ID: new ObjectId('69e7461c75089b26be48605d')
+
+      at Object.log (src/__tests__/debug-address.test.js:44:13)
+
+  console.log
+    POST Response status: 201
+
+      at Object.log (src/__tests__/debug-address.test.js:58:13)
+
+  console.log
+    POST Response body: {
+      success: true,
+      message: 'Address added successfully',
+      address: {
+        addressLine: '789 New Road',
+        city: 'Chicago',
+        state: 'IL',
+        pincode: '606011',
+        phone: '9876543212',
+        default: true,
+        _id: '69e7461c75089b26be48605e',
+        createdAt: '2026-04-21T09:40:44.519Z'
+      }
+    }
+
+      at Object.log (src/__tests__/debug-address.test.js:59:13)
+
+PASS src/__tests__/debug-address.test.js
+  Debug Address Routes
+    ✓ Should test POST address route with real user (390 ms)
+
+PASS src/__tests__/auth.logout.test.js
+  Auth Logout Endpoint
+    GET /api/auth/logout - Success Cases
+      ✓ Should logout a user successfully with valid token (394 ms)
+      ✓ Should clear JWT token from cookies on logout (164 ms)
+      ✓ Should return success response with correct structure (174 ms)
+    GET /api/auth/logout - Error Cases
+      ✓ Should return 401 error when no token is provided (2 ms)
+      ✓ Should return 401 error with invalid token (2 ms)
+      ✓ Should return 401 error with malformed token (2 ms)
+      ✓ Should return 401 error when token is expired (82 ms)
+    GET /api/auth/logout - Multiple Logouts
+      ✓ Should handle multiple logout attempts from same user (165 ms)
+    GET /api/auth/logout - Different Users
+      ✓ Should logout different users independently (217 ms)
+
+PASS src/__tests__/auth.login.test.js
+  Auth Login Endpoint
+    POST /api/auth/login - Success Cases
+      ✓ Should login a user successfully with valid credentials (330 ms)
+      ✓ Should return user data in response (312 ms)
+      ✓ Should set JWT token in cookies (194 ms)
+    POST /api/auth/login - Error Cases
+      ✓ Should return 401 when user does not exist (10 ms)
+      ✓ Should return 401 when password is incorrect (137 ms)
+      ✓ Should return 400 when email is missing (3 ms)
+      ✓ Should return 400 when password is missing (4 ms)
+      ✓ Should return 400 when email format is invalid (3 ms)
+      ✓ Should return 400 when request body is empty (4 ms)
+    POST /api/auth/login - Edge Cases
+      ✓ Should be case-sensitive for email (if database is case-sensitive) (100 ms)
+      ✓ Should handle whitespace in password correctly (156 ms)
+      ✓ Should handle very long password input (160 ms)
+
+FAIL src/__tests__/auth.register.test.js
+  Auth Register Endpoint
+    POST /api/auth/register - Success Cases
+      ✓ Should register a new user successfully (365 ms)
+      ✓ Should hash the password before storing (123 ms)
+      ✕ Should set role to "user" by default (2 ms)
+    POST /api/auth/register - Validation Cases
+      ✓ Should return 400 if username is missing (2 ms)
+      ✓ Should return 400 if email is missing (2 ms)
+      ✓ Should return 400 if password is missing (1 ms)
+      ✓ Should return 400 if firstName is missing (1 ms)
+      ✓ Should return 400 if lastName is missing (1 ms)
+    POST /api/auth/register - Duplicate User Cases
+      ✓ Should return 409 if email already exists (116 ms)
+      ✓ Should return 409 if username already exists (103 ms)
+      ✓ Should allow registration with both different email and username (164 ms)
+    POST /api/auth/register - Database Tests
+      ✓ Should persist user data in database (121 ms)
+      ✓ Should not create duplicate users in database (89 ms)
+    POST /api/auth/register - Multiple Users
+      ✓ Should allow registering multiple different users (241 ms)
+      ✓ Should clear database between test suites (1 ms)
+    POST /api/auth/register - Response Format
+      ✓ Should return proper response structure on success (114 ms)
+      ✓ Should not expose password in response (97 ms)
+
+  ● Auth Register Endpoint › POST /api/auth/register - Success Cases › Should set role to "user" by default
+
+    expected 201 "Created", got 400 "Bad Request"
+
+      82 |         .post('/api/auth/register')
+      83 |         .send(userData)
+    > 84 |         .expect(201);
+         |          ^
+      85 |
+      86 |       const user = await userModel.findOne({ email: 'roletest@example.com' });
+      87 |       expect(user.role).toBe('user');
+
+      at Object.expect (src/__tests__/auth.register.test.js:84:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+PASS src/__tests__/auth.me.test.js
+  Auth Me Endpoint
+    GET /api/auth/me - Success Cases
+      ✓ Should return current user data with valid token (380 ms)
+      ✓ Should return complete user profile with all fields (111 ms)
+      ✓ Should not return password in response (104 ms)
+    GET /api/auth/me - Authentication Error Cases
+      ✓ Should return 401 when no token is provided (2 ms)
+      ✓ Should return 401 when Authorization header is missing (2 ms)
+      ✓ Should return 401 with invalid token format (1 ms)
+      ✓ Should return 401 with malformed Bearer token (1 ms)
+      ✓ Should return 401 with invalid JWT token (2 ms)
+      ✓ Should return 401 with token signed with different secret (115 ms)
+    GET /api/auth/me - Token Expiration Cases
+      ✓ Should return 401 with expired token (206 ms)
+    GET /api/auth/me - User Not Found Cases
+      ✓ Should return 404 when user from token does not exist (3 ms)
+    GET /api/auth/me - Header Format Cases
+      ✓ Should handle Bearer token with correct format (95 ms)
+      ✓ Should reject token without Bearer prefix (85 ms)
+      ✓ Should be case-insensitive for Bearer prefix (91 ms)
+    GET /api/auth/me - Response Format Cases
+      ✓ Should return response with success flag (114 ms)
+      ✓ Should return user with id field (95 ms)
+
+PASS src/__tests__/auth.addresses.test.js
+  User Addresses Endpoints
+    GET /api/auth/users/me/addresses - List Addresses
+      ✓ Should return empty addresses array for new user (284 ms)
+      ✓ Should return all saved addresses for user (265 ms)
+      ✓ Should mark default address in response (120 ms)
+      ✓ Should return 401 when user is not authenticated (115 ms)
+      ✓ Should return addresses with correct structure (117 ms)
+    POST /api/auth/users/me/addresses - Add Address
+      ✓ Should add a valid address successfully (89 ms)
+      ✓ Should mark first address as default (111 ms)
+      ✓ Should not mark subsequent addresses as default (104 ms)
+      ✓ Should validate pincode format (6 digits) (104 ms)
+      ✓ Should validate phone number format (10 digits) (91 ms)
+      ✓ Should return 400 for missing required fields (95 ms)
+      ✓ Should return 401 when user is not authenticated (99 ms)
+      ✓ Should return address with id after adding (102 ms)
+      ✓ Should validate phone with leading zero or special chars (101 ms)
+      ✓ Should accept valid phone with exactly 10 digits (105 ms)
+    DELETE /api/auth/users/me/addresses/:addressId - Remove Address
+      ✓ Should delete an address successfully (78 ms)
+      ✓ Should return 404 when address not found (74 ms)
+      ✓ Should return 401 when user is not authenticated (73 ms)
+      ✓ Should not delete other users addresses (122 ms)
+      ✓ Should remove address from user addresses array (71 ms)
+      ✓ Should handle invalid address id format (69 ms)
+      ✓ Should update default address when default is deleted (76 ms)
+    Address Endpoints - Integration Tests
+      ✓ Should handle full address lifecycle (78 ms)
+
+Test Suites: 1 failed, 5 passed, 6 total
+Tests:       1 failed, 77 passed, 78 total
+Snapshots:   0 total
+Time:        4.641 s, estimated 5 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
