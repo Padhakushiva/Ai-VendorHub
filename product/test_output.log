@@ -1,0 +1,594 @@
+
+> product@1.0.0 test
+> jest --coverage src/__tests__/product.seller.test.js
+
+FAIL src/__tests__/product.seller.test.js
+  GET /api/product/seller - Seller's Product List
+    Authentication and Authorization
+      ✕ should return 401 when user is not authenticated (8 ms)
+      ✕ should return 403 when user is admin trying to access seller endpoint (2 ms)
+      ✕ should return 403 when user is customer trying to access seller endpoint (2 ms)
+      ✕ should allow authenticated seller to access endpoint (1 ms)
+    Get Seller's Products - Basic Functionality
+      ✕ should fetch all products for authenticated seller with default pagination (1 ms)
+      ✕ should return empty array when seller has no products (1 ms)
+      ✕ should filter results by seller ID only (1 ms)
+    Pagination
+      ✕ should use default skip=0 and limit=20 when not provided (1 ms)
+      ✕ should apply custom skip parameter (1 ms)
+      ✕ should apply custom limit parameter
+      ✕ should apply both skip and limit parameters (1 ms)
+      ✕ should handle pagination with multiple products (1 ms)
+    Filtering and Search
+      ✕ should filter products by search query (q parameter) for seller
+      ✕ should filter products by minimum price for seller (1 ms)
+      ✕ should filter products by maximum price for seller
+      ✕ should filter products by price range for seller
+      ✕ should combine search and price filter for seller (1 ms)
+    Product Status Filtering
+      ✕ should return only active products by default
+      ✕ should exclude archived products by default (1 ms)
+    Response Format
+      ✕ should return response with correct structure (1 ms)
+      ✕ should include all product fields in response
+    Error Handling
+      ✕ should handle database errors gracefully (1 ms)
+      ✕ should handle invalid skip parameter (1 ms)
+      ✕ should handle invalid limit parameter
+      ✓ should handle negative skip parameter (1 ms)
+      ✓ should handle negative limit parameter
+      ✕ should handle very large limit parameter (1 ms)
+    Data Integrity
+      ✕ should not return products from other sellers
+      ✓ should maintain data consistency across multiple calls (1 ms)
+    Edge Cases
+      ✕ should handle seller with many products
+      ✕ should handle special characters in search query (1 ms)
+      ✕ should handle products with various currencies (1 ms)
+      ✕ should handle empty description and other optional fields
+
+  ● GET /api/product/seller - Seller's Product List › Authentication and Authorization › should return 401 when user is not authenticated
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: undefined
+
+      16 |
+      17 |       expect(response.status).toBe(401);
+    > 18 |       expect(response.body.success).toBe(false);
+         |                                     ^
+      19 |       expect(response.body.message).toMatch(/unauthorized|not authenticated|token/i);
+      20 |     });
+      21 |
+
+      at Object.toBe (src/__tests__/product.seller.test.js:18:37)
+
+  ● GET /api/product/seller - Seller's Product List › Authentication and Authorization › should return 403 when user is admin trying to access seller endpoint
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 403
+    Received: 401
+
+      25 |         .set('Authorization', 'Bearer admin-token');
+      26 |
+    > 27 |       expect(response.status).toBe(403);
+         |                               ^
+      28 |       expect(response.body.success).toBe(false);
+      29 |       expect(response.body.message).toMatch(/forbidden|not authorized|insufficient/i);
+      30 |     });
+
+      at Object.toBe (src/__tests__/product.seller.test.js:27:31)
+
+  ● GET /api/product/seller - Seller's Product List › Authentication and Authorization › should return 403 when user is customer trying to access seller endpoint
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 403
+    Received: 401
+
+      35 |         .set('Authorization', 'Bearer customer-token');
+      36 |
+    > 37 |       expect(response.status).toBe(403);
+         |                               ^
+      38 |       expect(response.body.success).toBe(false);
+      39 |     });
+      40 |
+
+      at Object.toBe (src/__tests__/product.seller.test.js:37:31)
+
+  ● GET /api/product/seller - Seller's Product List › Authentication and Authorization › should allow authenticated seller to access endpoint
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      52 |         .set('Authorization', 'Bearer seller-token');
+      53 |
+    > 54 |       expect(response.status).toBe(200);
+         |                               ^
+      55 |       expect(response.body.success).toBe(true);
+      56 |     });
+      57 |   });
+
+      at Object.toBe (src/__tests__/product.seller.test.js:54:31)
+
+  ● GET /api/product/seller - Seller's Product List › Get Seller's Products - Basic Functionality › should fetch all products for authenticated seller with default pagination
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      93 |         .set('Authorization', `Bearer seller-token`);
+      94 |
+    > 95 |       expect(response.status).toBe(200);
+         |                               ^
+      96 |       expect(response.body.success).toBe(true);
+      97 |       expect(response.body.message).toMatch(/product|fetched|successfully/i);
+      98 |       expect(response.body.data).toEqual(mockProducts);
+
+      at Object.toBe (src/__tests__/product.seller.test.js:95:31)
+
+  ● GET /api/product/seller - Seller's Product List › Get Seller's Products - Basic Functionality › should return empty array when seller has no products
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      113 |         .set('Authorization', 'Bearer seller-token');
+      114 |
+    > 115 |       expect(response.status).toBe(200);
+          |                               ^
+      116 |       expect(response.body.success).toBe(true);
+      117 |       expect(response.body.data).toEqual([]);
+      118 |     });
+
+      at Object.toBe (src/__tests__/product.seller.test.js:115:31)
+
+  ● GET /api/product/seller - Seller's Product List › Get Seller's Products - Basic Functionality › should filter results by seller ID only
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      141 |         .set('Authorization', 'Bearer seller-token');
+      142 |
+    > 143 |       expect(response.status).toBe(200);
+          |                               ^
+      144 |       // Verify that the filter only includes seller ID, not other sellers' products
+      145 |       expect(Product.find).toHaveBeenCalledWith({ seller: sellerId });
+      146 |     });
+
+      at Object.toBe (src/__tests__/product.seller.test.js:143:31)
+
+  ● GET /api/product/seller - Seller's Product List › Pagination › should use default skip=0 and limit=20 when not provided
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: 0
+
+    Number of calls: 0
+
+      161 |         .set('Authorization', 'Bearer seller-token');
+      162 |
+    > 163 |       expect(Product.find().skip).toHaveBeenCalledWith(0);
+          |                                   ^
+      164 |       expect(Product.find().skip().limit).toHaveBeenCalledWith(20);
+      165 |     });
+      166 |
+
+      at Object.toHaveBeenCalledWith (src/__tests__/product.seller.test.js:163:35)
+
+  ● GET /api/product/seller - Seller's Product List › Pagination › should apply custom skip parameter
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: 10
+
+    Number of calls: 0
+
+      178 |         .set('Authorization', 'Bearer seller-token');
+      179 |
+    > 180 |       expect(Product.find().skip).toHaveBeenCalledWith(10);
+          |                                   ^
+      181 |     });
+      182 |
+      183 |     test('should apply custom limit parameter', async () => {
+
+      at Object.toHaveBeenCalledWith (src/__tests__/product.seller.test.js:180:35)
+
+  ● GET /api/product/seller - Seller's Product List › Pagination › should apply custom limit parameter
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: 50
+
+    Number of calls: 0
+
+      194 |         .set('Authorization', 'Bearer seller-token');
+      195 |
+    > 196 |       expect(Product.find().skip().limit).toHaveBeenCalledWith(50);
+          |                                           ^
+      197 |     });
+      198 |
+      199 |     test('should apply both skip and limit parameters', async () => {
+
+      at Object.toHaveBeenCalledWith (src/__tests__/product.seller.test.js:196:43)
+
+  ● GET /api/product/seller - Seller's Product List › Pagination › should apply both skip and limit parameters
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: 5
+
+    Number of calls: 0
+
+      210 |         .set('Authorization', 'Bearer seller-token');
+      211 |
+    > 212 |       expect(Product.find().skip).toHaveBeenCalledWith(5);
+          |                                   ^
+      213 |       expect(Product.find().skip().limit).toHaveBeenCalledWith(15);
+      214 |     });
+      215 |
+
+      at Object.toHaveBeenCalledWith (src/__tests__/product.seller.test.js:212:35)
+
+  ● GET /api/product/seller - Seller's Product List › Pagination › should handle pagination with multiple products
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      233 |         .set('Authorization', 'Bearer seller-token');
+      234 |
+    > 235 |       expect(response.status).toBe(200);
+          |                               ^
+      236 |       expect(response.body.data.length).toBe(10);
+      237 |     });
+      238 |   });
+
+      at Object.toBe (src/__tests__/product.seller.test.js:235:31)
+
+  ● GET /api/product/seller - Seller's Product List › Filtering and Search › should filter products by search query (q parameter) for seller
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      261 |         .set('Authorization', 'Bearer seller-token');
+      262 |
+    > 263 |       expect(response.status).toBe(200);
+          |                               ^
+      264 |       expect(response.body.data).toEqual(mockProducts);
+      265 |       expect(Product.find).toHaveBeenCalledWith({
+      266 |         seller: sellerId,
+
+      at Object.toBe (src/__tests__/product.seller.test.js:263:31)
+
+  ● GET /api/product/seller - Seller's Product List › Filtering and Search › should filter products by minimum price for seller
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      290 |         .set('Authorization', 'Bearer seller-token');
+      291 |
+    > 292 |       expect(response.status).toBe(200);
+          |                               ^
+      293 |       expect(Product.find).toHaveBeenCalledWith({
+      294 |         seller: sellerId,
+      295 |         'price.amount': { $gte: 400 },
+
+      at Object.toBe (src/__tests__/product.seller.test.js:292:31)
+
+  ● GET /api/product/seller - Seller's Product List › Filtering and Search › should filter products by maximum price for seller
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      318 |         .set('Authorization', 'Bearer seller-token');
+      319 |
+    > 320 |       expect(response.status).toBe(200);
+          |                               ^
+      321 |       expect(Product.find).toHaveBeenCalledWith({
+      322 |         seller: sellerId,
+      323 |         'price.amount': { $lte: 100 },
+
+      at Object.toBe (src/__tests__/product.seller.test.js:320:31)
+
+  ● GET /api/product/seller - Seller's Product List › Filtering and Search › should filter products by price range for seller
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      346 |         .set('Authorization', 'Bearer seller-token');
+      347 |
+    > 348 |       expect(response.status).toBe(200);
+          |                               ^
+      349 |       expect(Product.find).toHaveBeenCalledWith({
+      350 |         seller: sellerId,
+      351 |         'price.amount': { $gte: 100, $lte: 500 },
+
+      at Object.toBe (src/__tests__/product.seller.test.js:348:31)
+
+  ● GET /api/product/seller - Seller's Product List › Filtering and Search › should combine search and price filter for seller
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      374 |         .set('Authorization', 'Bearer seller-token');
+      375 |
+    > 376 |       expect(response.status).toBe(200);
+          |                               ^
+      377 |       expect(Product.find).toHaveBeenCalledWith({
+      378 |         seller: sellerId,
+      379 |         $text: { $search: 'laptop' },
+
+      at Object.toBe (src/__tests__/product.seller.test.js:376:31)
+
+  ● GET /api/product/seller - Seller's Product List › Product Status Filtering › should return only active products by default
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      405 |         .set('Authorization', 'Bearer seller-token');
+      406 |
+    > 407 |       expect(response.status).toBe(200);
+          |                               ^
+      408 |       expect(response.body.data.every(p => p.status === 'active')).toBe(true);
+      409 |     });
+      410 |
+
+      at Object.toBe (src/__tests__/product.seller.test.js:407:31)
+
+  ● GET /api/product/seller - Seller's Product List › Product Status Filtering › should exclude archived products by default
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      423 |         .set('Authorization', 'Bearer seller-token');
+      424 |
+    > 425 |       expect(response.status).toBe(200);
+          |                               ^
+      426 |       expect(response.body.data).toEqual([]);
+      427 |     });
+      428 |   });
+
+      at Object.toBe (src/__tests__/product.seller.test.js:425:31)
+
+  ● GET /api/product/seller - Seller's Product List › Response Format › should return response with correct structure
+
+    expect(received).toHaveProperty(path)
+
+    Expected path: "success"
+    Received path: []
+
+    Received value: {"message": "Invalid or expired token"}
+
+      451 |         .set('Authorization', 'Bearer seller-token');
+      452 |
+    > 453 |       expect(response.body).toHaveProperty('success');
+          |                             ^
+      454 |       expect(response.body).toHaveProperty('message');
+      455 |       expect(response.body).toHaveProperty('data');
+      456 |       expect(typeof response.body.success).toBe('boolean');
+
+      at Object.toHaveProperty (src/__tests__/product.seller.test.js:453:29)
+
+  ● GET /api/product/seller - Seller's Product List › Response Format › should include all product fields in response
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      484 |         .set('Authorization', 'Bearer seller-token');
+      485 |
+    > 486 |       expect(response.status).toBe(200);
+          |                               ^
+      487 |       const product = response.body.data[0];
+      488 |       expect(product).toHaveProperty('_id');
+      489 |       expect(product).toHaveProperty('title');
+
+      at Object.toBe (src/__tests__/product.seller.test.js:486:31)
+
+  ● GET /api/product/seller - Seller's Product List › Error Handling › should handle database errors gracefully
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 500
+    Received: 401
+
+      505 |         .set('Authorization', 'Bearer seller-token');
+      506 |
+    > 507 |       expect(response.status).toBe(500);
+          |                               ^
+      508 |       expect(response.body.success).toBe(false);
+      509 |       expect(response.body.message).toMatch(/error|failed/i);
+      510 |     });
+
+      at Object.toBe (src/__tests__/product.seller.test.js:507:31)
+
+  ● GET /api/product/seller - Seller's Product List › Error Handling › should handle invalid skip parameter
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 401
+    Received array: [200, 400]
+
+      524 |
+      525 |       // Should either return 400 or handle gracefully
+    > 526 |       expect([200, 400]).toContain(response.status);
+          |                          ^
+      527 |     });
+      528 |
+      529 |     test('should handle invalid limit parameter', async () => {
+
+      at Object.toContain (src/__tests__/product.seller.test.js:526:26)
+
+  ● GET /api/product/seller - Seller's Product List › Error Handling › should handle invalid limit parameter
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 401
+    Received array: [200, 400]
+
+      541 |
+      542 |       // Should either return 400 or handle gracefully
+    > 543 |       expect([200, 400]).toContain(response.status);
+          |                          ^
+      544 |     });
+      545 |
+      546 |     test('should handle negative skip parameter', async () => {
+
+      at Object.toContain (src/__tests__/product.seller.test.js:543:26)
+
+  ● GET /api/product/seller - Seller's Product List › Error Handling › should handle very large limit parameter
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      591 |         .set('Authorization', 'Bearer seller-token');
+      592 |
+    > 593 |       expect(response.status).toBe(200);
+          |                               ^
+      594 |     });
+      595 |   });
+      596 |
+
+      at Object.toBe (src/__tests__/product.seller.test.js:593:31)
+
+  ● GET /api/product/seller - Seller's Product List › Data Integrity › should not return products from other sellers
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      619 |         .set('Authorization', 'Bearer seller-token');
+      620 |
+    > 621 |       expect(response.status).toBe(200);
+          |                               ^
+      622 |       // Verify all products belong to the authenticated seller
+      623 |       response.body.data.forEach(product => {
+      624 |         expect(product.seller).toBe(sellerId);
+
+      at Object.toBe (src/__tests__/product.seller.test.js:621:31)
+
+  ● GET /api/product/seller - Seller's Product List › Edge Cases › should handle seller with many products
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      675 |         .set('Authorization', 'Bearer seller-token');
+      676 |
+    > 677 |       expect(response.status).toBe(200);
+          |                               ^
+      678 |       expect(response.body.data.length).toBe(100);
+      679 |     });
+      680 |
+
+      at Object.toBe (src/__tests__/product.seller.test.js:677:31)
+
+  ● GET /api/product/seller - Seller's Product List › Edge Cases › should handle special characters in search query
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      693 |         .set('Authorization', 'Bearer seller-token');
+      694 |
+    > 695 |       expect(response.status).toBe(200);
+          |                               ^
+      696 |     });
+      697 |
+      698 |     test('should handle products with various currencies', async () => {
+
+      at Object.toBe (src/__tests__/product.seller.test.js:695:31)
+
+  ● GET /api/product/seller - Seller's Product List › Edge Cases › should handle products with various currencies
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      729 |         .set('Authorization', 'Bearer seller-token');
+      730 |
+    > 731 |       expect(response.status).toBe(200);
+          |                               ^
+      732 |       expect(response.body.data.length).toBe(3);
+      733 |     });
+      734 |
+
+      at Object.toBe (src/__tests__/product.seller.test.js:731:31)
+
+  ● GET /api/product/seller - Seller's Product List › Edge Cases › should handle empty description and other optional fields
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      756 |         .set('Authorization', 'Bearer seller-token');
+      757 |
+    > 758 |       expect(response.status).toBe(200);
+          |                               ^
+      759 |       expect(response.body.data[0].description).toBe('');
+      760 |     });
+      761 |   });
+
+      at Object.toBe (src/__tests__/product.seller.test.js:758:31)
+
+------------------------|---------|----------|---------|---------|----------------------------------------------
+File                    | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                            
+------------------------|---------|----------|---------|---------|----------------------------------------------
+All files               |    28.7 |      3.6 |    12.5 |    28.7 |                                              
+ src                    |      60 |        0 |       0 |      60 |                                              
+  app.js                |      60 |        0 |       0 |      60 | 13-29                                        
+ src/controllers        |    7.69 |        0 |       0 |    7.69 |                                              
+  product.controller.js |    7.69 |        0 |       0 |    7.69 | 12-63,72-107,117-138,147-278,287-361,371-411 
+ src/middleware         |   63.63 |    44.44 |   66.66 |   63.63 |                                              
+  auth.middleware.js    |   69.23 |    57.14 |     100 |   69.23 | 13-19                                        
+  upload.middleware.js  |   55.55 |        0 |       0 |   55.55 | 8-13                                         
+ src/models             |     100 |      100 |     100 |     100 |                                              
+  product.model.js      |     100 |      100 |     100 |     100 |                                              
+ src/routes             |     100 |      100 |     100 |     100 |                                              
+  product.routes.js     |     100 |      100 |     100 |     100 |                                              
+ src/services           |   41.66 |      100 |       0 |   41.66 |                                              
+  imagekit.service.js   |   41.66 |      100 |       0 |   41.66 | 19-26,36-39                                  
+ src/validators         |   33.33 |        0 |       0 |   33.33 |                                              
+  product.validator.js  |   33.33 |        0 |       0 |   33.33 | 7-21,45-48                                   
+------------------------|---------|----------|---------|---------|----------------------------------------------
+Jest: "global" coverage threshold for statements (60%) not met: 28.7%
+Jest: "global" coverage threshold for branches (60%) not met: 3.6%
+Jest: "global" coverage threshold for lines (60%) not met: 28.7%
+Jest: "global" coverage threshold for functions (60%) not met: 12.5%
+Test Suites: 1 failed, 1 total
+Tests:       30 failed, 3 passed, 33 total
+Snapshots:   0 total
+Time:        0.369 s, estimated 1 s
+Ran all test suites matching /src\/__tests__\/product.seller.test.js/i.

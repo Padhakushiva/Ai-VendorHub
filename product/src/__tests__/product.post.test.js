@@ -199,7 +199,7 @@ describe('POST /api/product/', () => {
         .set('Authorization', `Bearer ${testToken}`)
         .field('title', 'Product with Image')
         .field('amount', '150')
-        .attach('photo', Buffer.from('fake image data'), 'test.jpg');
+        .attach('images', Buffer.from('fake image data'), 'test.jpg');
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
@@ -241,7 +241,7 @@ describe('POST /api/product/', () => {
         .field('amount', '200');
 
       for (let i = 0; i < 3; i++) {
-        attachReq = attachReq.attach('photo', Buffer.from('fake image data'), `test${i}.jpg`);
+        attachReq = attachReq.attach('images', Buffer.from('fake image data'), `test${i}.jpg`);
       }
 
       const response = await attachReq;
@@ -257,7 +257,7 @@ describe('POST /api/product/', () => {
         .set('Authorization', `Bearer ${testToken}`)
         .field('title', 'Product')
         .field('amount', '100')
-        .attach('photo', Buffer.from('fake file data'), 'test.txt');
+        .attach('images', Buffer.from('fake file data'), 'test.txt');
 
       expect(response.status).toBe(400);
       expect(uploadToImageKit).not.toHaveBeenCalled();
@@ -271,7 +271,7 @@ describe('POST /api/product/', () => {
         .set('Authorization', `Bearer ${testToken}`)
         .field('title', 'Product')
         .field('amount', '100')
-        .attach('photo', largeBuffer, 'large.jpg');
+        .attach('images', largeBuffer, 'large.jpg');
 
       expect(response.status).toBe(400);
     });
@@ -284,7 +284,7 @@ describe('POST /api/product/', () => {
         .field('amount', '100');
 
       for (let i = 0; i < 6; i++) {
-        attachReq = attachReq.attach('photo', Buffer.from('fake image data'), `test${i}.jpg`);
+        attachReq = attachReq.attach('images', Buffer.from('fake image data'), `test${i}.jpg`);
       }
 
       const response = await attachReq;
@@ -425,7 +425,7 @@ describe('POST /api/product/', () => {
         .set('Authorization', `Bearer ${testToken}`)
         .field('title', 'Product')
         .field('amount', '100')
-        .attach('photo', Buffer.from('fake image data'), 'test.jpg');
+        .attach('images', Buffer.from('fake image data'), 'test.jpg');
 
       expect(response.status).toBe(500);
       expect(response.body.success).toBe(false);

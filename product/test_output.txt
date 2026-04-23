@@ -1,0 +1,402 @@
+
+> product@1.0.0 test
+> jest --coverage src/__tests__/product.delete.test.js --verbose
+
+  console.error
+    Error deleting product: Error: Connection refused
+        at Object.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/src/__tests__/product.delete.test.js:538:28)
+        at Promise.then.completed (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/utils.js:298:28)
+        at new Promise (<anonymous>)
+        at callAsyncCircusFn (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/utils.js:231:10)
+        at _callCircusTest (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/run.js:316:40)
+        at processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at _runTest (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/run.js:252:3)
+        at _runTestsForDescribeBlock (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/run.js:126:9)
+        at _runTestsForDescribeBlock (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/run.js:121:9)
+        at _runTestsForDescribeBlock (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/run.js:121:9)
+        at run (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/run.js:71:3)
+        at runAndTransformResultsToJestFormat (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+        at jestAdapter (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+        at runTestInternal (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-runner/build/runTest.js:367:16)
+        at runTest (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-runner/build/runTest.js:444:34)
+
+      356 |     });
+      357 |   } catch (error) {
+    > 358 |     console.error('Error deleting product:', error);
+          |             ^
+      359 |     return res.status(500).json({
+      360 |       success: false,
+      361 |       message: 'Error deleting product',
+
+      at error (src/controllers/product.controller.js:358:13)
+
+  console.error
+    Error deleting product: Error: Save failed
+        at Object.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/src/__tests__/product.delete.test.js:573:43)
+        at Promise.then.completed (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/utils.js:298:28)
+        at new Promise (<anonymous>)
+        at callAsyncCircusFn (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/utils.js:231:10)
+        at _callCircusTest (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/run.js:316:40)
+        at processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at _runTest (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/run.js:252:3)
+        at _runTestsForDescribeBlock (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/run.js:126:9)
+        at _runTestsForDescribeBlock (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/run.js:121:9)
+        at _runTestsForDescribeBlock (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/run.js:121:9)
+        at run (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/run.js:71:3)
+        at runAndTransformResultsToJestFormat (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+        at jestAdapter (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+        at runTestInternal (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-runner/build/runTest.js:367:16)
+        at runTest (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/jest-runner/build/runTest.js:444:34)
+
+      356 |     });
+      357 |   } catch (error) {
+    > 358 |     console.error('Error deleting product:', error);
+          |             ^
+      359 |     return res.status(500).json({
+      360 |       success: false,
+      361 |       message: 'Error deleting product',
+
+      at error (src/controllers/product.controller.js:358:13)
+
+FAIL src/__tests__/product.delete.test.js
+  DELETE /api/product/:id - Delete Product (Seller)
+    Authentication & Authorization
+      ✓ should allow seller to delete their own product (11 ms)
+      ✓ should allow admin to delete any product (3 ms)
+      ✓ should deny buyer from deleting product (2 ms)
+      ✓ should deny access without authentication token (1 ms)
+      ✓ should deny seller from deleting another seller product (2 ms)
+      ✓ should deny invalid token (1 ms)
+    Soft Delete - Product with Orders
+      ✓ should soft delete product when it has orders (3 ms)
+      ✓ should set status to archived on soft delete (2 ms)
+      ✕ should preserve product data on soft delete (3 ms)
+      ✓ should handle product with multiple orders (2 ms)
+    Hard Delete - Product without Orders
+      ✕ should hard delete product when it has no orders (2 ms)
+      ✕ should remove product from database on hard delete (1 ms)
+      ✕ should handle empty orders array (2 ms)
+      ✕ should handle product with no orders field (1 ms)
+    Event Emission - product.deleted
+      ✓ should emit product.deleted event on soft delete (1 ms)
+      ✕ should emit product.deleted event on hard delete (1 ms)
+      ✕ should include product ID in deletion event (2 ms)
+      ✓ should include deletion type in event (soft vs hard) (1 ms)
+      ✕ should include seller info in deletion event (1 ms)
+      ✓ should include timestamp in deletion event (1 ms)
+    Cache Invalidation
+      ✕ should invalidate cache after deletion (1 ms)
+      ✓ should invalidate product-specific cache key (2 ms)
+      ✓ should invalidate all products list cache (1 ms)
+    Error Handling
+      ✓ should handle product not found (1 ms)
+      ✓ should handle invalid product ID (1 ms)
+      ✓ should handle database connection error (11 ms)
+      ✕ should handle delete operation error (2 ms)
+      ✓ should handle save operation error on soft delete (3 ms)
+      ✓ should handle concurrent delete requests (2 ms)
+    Response Structure
+      ✓ should return success response on deletion (1 ms)
+      ✓ should include appropriate message in response (2 ms)
+      ✕ should include deleted product data in response (1 ms)
+      ✓ should handle 204 No Content response (1 ms)
+    Edge Cases
+      ✓ should handle product with special characters in title (2 ms)
+      ✓ should handle product with large orders array (1 ms)
+      ✓ should handle product with very long description before deletion (1 ms)
+      ✓ should handle product already in archived status on soft delete (2 ms)
+      ✕ should handle deletion of newly created product (no orders) (1 ms)
+      ✓ should handle unicode characters in product data (1 ms)
+      ✓ should handle product with null optional fields (1 ms)
+    Data Consistency
+      ✕ should not delete other products when deleting one (2 ms)
+      ✓ should only affect sellers products when seller deletes (1 ms)
+      ✕ should correctly identify soft vs hard delete based on orders (2 ms)
+    Admin Privileges
+      ✓ should allow admin to soft delete any product (1 ms)
+      ✕ should allow admin to hard delete any product (2 ms)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Soft Delete - Product with Orders › should preserve product data on soft delete
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "Product to Archive"
+    Received: undefined
+
+      201 |
+      202 |       expect(response.status).toBe(200);
+    > 203 |       expect(response.body.data.title).toBe('Product to Archive');
+          |                                        ^
+      204 |       expect(response.body.data.description).toBe('Important description');
+      205 |       expect(response.body.data.price.amount).toBe(100);
+      206 |     });
+
+      at Object.toBe (src/__tests__/product.delete.test.js:203:40)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Hard Delete - Product without Orders › should hard delete product when it has no orders
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      251 |       expect([200, 204]).toContain(response.status);
+      252 |       expect(response.body.success).toBe(true);
+    > 253 |       expect(mockProduct.deleteOne).toHaveBeenCalled();
+          |                                     ^
+      254 |     });
+      255 |
+      256 |     test('should remove product from database on hard delete', async () => {
+
+      at Object.toHaveBeenCalled (src/__tests__/product.delete.test.js:253:37)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Hard Delete - Product without Orders › should remove product from database on hard delete
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      270 |
+      271 |       expect(response.status).toBe(200);
+    > 272 |       expect(mockProduct.deleteOne).toHaveBeenCalled();
+          |                                     ^
+      273 |     });
+      274 |
+      275 |     test('should handle empty orders array', async () => {
+
+      at Object.toHaveBeenCalled (src/__tests__/product.delete.test.js:272:37)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Hard Delete - Product without Orders › should handle empty orders array
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      289 |
+      290 |       expect(response.status).toBe(200);
+    > 291 |       expect(mockProduct.deleteOne).toHaveBeenCalled();
+          |                                     ^
+      292 |     });
+      293 |
+      294 |     test('should handle product with no orders field', async () => {
+
+      at Object.toHaveBeenCalled (src/__tests__/product.delete.test.js:291:37)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Hard Delete - Product without Orders › should handle product with no orders field
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      308 |
+      309 |       expect(response.status).toBe(200);
+    > 310 |       expect(mockProduct.deleteOne).toHaveBeenCalled();
+          |                                     ^
+      311 |     });
+      312 |   });
+      313 |
+
+      at Object.toHaveBeenCalled (src/__tests__/product.delete.test.js:310:37)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Event Emission - product.deleted › should emit product.deleted event on hard delete
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      360 |       // Event should be emitted during deletion
+      361 |       expect(response.body.success).toBe(true);
+    > 362 |       expect(mockProduct.deleteOne).toHaveBeenCalled();
+          |                                     ^
+      363 |     });
+      364 |
+      365 |     test('should include product ID in deletion event', async () => {
+
+      at Object.toHaveBeenCalled (src/__tests__/product.delete.test.js:362:37)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Event Emission - product.deleted › should include product ID in deletion event
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      381 |       expect(response.status).toBe(200);
+      382 |       // Response should reflect the deleted product ID
+    > 383 |       expect(mockProduct.deleteOne).toHaveBeenCalled();
+          |                                     ^
+      384 |     });
+      385 |
+      386 |     test('should include deletion type in event (soft vs hard)', async () => {
+
+      at Object.toHaveBeenCalled (src/__tests__/product.delete.test.js:383:37)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Event Emission - product.deleted › should include seller info in deletion event
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      425 |
+      426 |       expect(response.status).toBe(200);
+    > 427 |       expect(mockProduct.deleteOne).toHaveBeenCalled();
+          |                                     ^
+      428 |     });
+      429 |
+      430 |     test('should include timestamp in deletion event', async () => {
+
+      at Object.toHaveBeenCalled (src/__tests__/product.delete.test.js:427:37)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Cache Invalidation › should invalidate cache after deletion
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      468 |       expect(response.status).toBe(200);
+      469 |       // Cache should be invalidated
+    > 470 |       expect(mockProduct.deleteOne).toHaveBeenCalled();
+          |                                     ^
+      471 |     });
+      472 |
+      473 |     test('should invalidate product-specific cache key', async () => {
+
+      at Object.toHaveBeenCalled (src/__tests__/product.delete.test.js:470:37)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Error Handling › should handle delete operation error
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 500
+    Received: 200
+
+      561 |         .set('Authorization', `Bearer ${sellerToken}`);
+      562 |
+    > 563 |       expect(response.status).toBe(500);
+          |                               ^
+      564 |       expect(response.body.success).toBe(false);
+      565 |     });
+      566 |
+
+      at Object.toBe (src/__tests__/product.delete.test.js:563:31)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Response Structure › should include deleted product data in response
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "507f1f77bcf86cd799439062"
+    Received: undefined
+
+      666 |
+      667 |       expect(response.body).toHaveProperty('data');
+    > 668 |       expect(response.body.data._id).toBe('507f1f77bcf86cd799439062');
+          |                                      ^
+      669 |     });
+      670 |
+      671 |     test('should handle 204 No Content response', async () => {
+
+      at Object.toBe (src/__tests__/product.delete.test.js:668:38)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Edge Cases › should handle deletion of newly created product (no orders)
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      796 |
+      797 |       expect(response.status).toBe(200);
+    > 798 |       expect(mockProduct.deleteOne).toHaveBeenCalled();
+          |                                     ^
+      799 |     });
+      800 |
+      801 |     test('should handle unicode characters in product data', async () => {
+
+      at Object.toHaveBeenCalled (src/__tests__/product.delete.test.js:798:37)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Data Consistency › should not delete other products when deleting one
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      855 |
+      856 |       expect(response.status).toBe(200);
+    > 857 |       expect(mockProduct.deleteOne).toHaveBeenCalled();
+          |                                     ^
+      858 |     });
+      859 |
+      860 |     test('should only affect sellers products when seller deletes', async () => {
+
+      at Object.toHaveBeenCalled (src/__tests__/product.delete.test.js:857:37)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Data Consistency › should correctly identify soft vs hard delete based on orders
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      916 |
+      917 |       expect(response2.status).toBe(200);
+    > 918 |       expect(hardDeleteProduct.deleteOne).toHaveBeenCalled();
+          |                                           ^
+      919 |     });
+      920 |   });
+      921 |
+
+      at Object.toHaveBeenCalled (src/__tests__/product.delete.test.js:918:43)
+
+  ● DELETE /api/product/:id - Delete Product (Seller) › Admin Privileges › should allow admin to hard delete any product
+
+    expect(jest.fn()).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      960 |       expect(response.status).toBe(200);
+      961 |       expect(response.body.success).toBe(true);
+    > 962 |       expect(mockProduct.deleteOne).toHaveBeenCalled();
+          |                                     ^
+      963 |     });
+      964 |   });
+      965 | });
+
+      at Object.toHaveBeenCalled (src/__tests__/product.delete.test.js:962:37)
+
+------------------------|---------|----------|---------|---------|------------------------------------------
+File                    | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                        
+------------------------|---------|----------|---------|---------|------------------------------------------
+All files               |   43.22 |     19.8 |      20 |   43.22 |                                          
+ src                    |      60 |        0 |       0 |      60 |                                          
+  app.js                |      60 |        0 |       0 |      60 | 13-29                                    
+ src/controllers        |   26.31 |    18.42 |   16.66 |   26.31 |                                          
+  product.controller.js |   26.31 |    18.42 |   16.66 |   26.31 | 12-63,72-107,117-138,147-278,332,343-345 
+ src/middleware         |   81.81 |    66.66 |   66.66 |   81.81 |                                          
+  auth.middleware.js    |     100 |    85.71 |     100 |     100 | 3                                        
+  upload.middleware.js  |   55.55 |        0 |       0 |   55.55 | 8-13                                     
+ src/models             |     100 |      100 |     100 |     100 |                                          
+  product.model.js      |     100 |      100 |     100 |     100 |                                          
+ src/routes             |     100 |      100 |     100 |     100 |                                          
+  product.routes.js     |     100 |      100 |     100 |     100 |                                          
+ src/services           |   41.66 |      100 |       0 |   41.66 |                                          
+  imagekit.service.js   |   41.66 |      100 |       0 |   41.66 | 19-26,36-39                              
+ src/validators         |   33.33 |        0 |       0 |   33.33 |                                          
+  product.validator.js  |   33.33 |        0 |       0 |   33.33 | 7-21,45-48                               
+------------------------|---------|----------|---------|---------|------------------------------------------
+Jest: "global" coverage threshold for statements (60%) not met: 43.22%
+Jest: "global" coverage threshold for branches (60%) not met: 19.8%
+Jest: "global" coverage threshold for lines (60%) not met: 43.22%
+Jest: "global" coverage threshold for functions (60%) not met: 20%
+Test Suites: 1 failed, 1 total
+Tests:       15 failed, 30 passed, 45 total
+Snapshots:   0 total
+Time:        0.424 s, estimated 1 s
+Ran all test suites matching /src\/__tests__\/product.delete.test.js/i.

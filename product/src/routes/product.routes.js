@@ -6,13 +6,38 @@ const upload = require('../middleware/upload.middleware');
 const { validateProductCreation } = require('../validators/product.validator');
 
 // POST /api/product/ - Create product with images
-// Note: multer must run before validator for multipart form data to be parsed
+
 router.post(
   '/',
   createAuthMiddleware(['admin', 'seller']),
-  upload.array('photo', 5),
+  upload.array('images', 5),
   validateProductCreation,
   productController.createProduct
+);
+
+//GET  api/products - Get all products with pagination and filtering
+router.get('/', productController.getProducts);
+
+//GET api/products/seller - Get products by seller (SELLER ONLY)
+router.get('/seller', createAuthMiddleware(['seller']), productController.getProductsBySeller);
+
+//GET api/products/:id - Get product by ID
+router.get('/:id', productController.getProductById);
+
+//PATCH api/products/:id - Update product by ID (SELLER - own products, ADMIN - any product)
+router.patch(
+  '/:id',
+  createAuthMiddleware(['admin', 'seller']),
+  productController.updateProduct
+);
+
+
+//DELETE api/products/:id - Delete product by ID (SELLER - own products, ADMIN - any product)
+// Soft delete if orders exist (status='archived'), hard delete if no orders
+router.delete(
+  '/:id',
+  createAuthMiddleware(['admin', 'seller']),
+  productController.deleteProduct
 );
 
 module.exports = router;

@@ -1,0 +1,410 @@
+
+> product@1.0.0 test
+> jest --coverage
+
+FAIL src/__tests__/product.getbyid.test.js
+  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     • If you need a custom transformation specify a "transform" option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    SyntaxError: /Users/shivachoudhry/Downloads/Ai-VendorHub/product/src/controllers/product.controller.js: Identifier 'productmodel' has already been declared. (149:6)
+
+      147 |
+      148 | const mongoose = require('mongoose');
+    > 149 | const productmodel = require('../models/product.model');
+          |       ^
+      150 |
+      151 | const updateProduct = async (req, res) => {
+      152 |   try {
+
+      1 | const express = require('express');
+      2 | const router = express.Router();
+    > 3 | const productController = require('../controllers/product.controller');
+        |                           ^
+      4 | const createAuthMiddleware = require('../middleware/auth.middleware');
+      5 | const upload = require('../middleware/upload.middleware');
+      6 | const { validateProductCreation } = require('../validators/product.validator');
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at ScopeHandler.raise [as checkRedeclarationInScope] (node_modules/@babel/parser/src/util/scope.ts:164:19)
+      at ScopeHandler.checkRedeclarationInScope [as declareName] (node_modules/@babel/parser/src/util/scope.ts:118:12)
+      at Parser.declareName [as declareNameFromIdentifier] (node_modules/@babel/parser/src/parser/lval.ts:876:16)
+      at Parser.declareNameFromIdentifier [as checkIdentifier] (node_modules/@babel/parser/src/parser/lval.ts:871:12)
+      at Parser.checkIdentifier [as checkLVal] (node_modules/@babel/parser/src/parser/lval.ts:763:12)
+      at Parser.checkLVal [as parseVarId] (node_modules/@babel/parser/src/parser/statement.ts:1633:10)
+      at Parser.parseVarId [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1582:12)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at evaluateSync (node_modules/gensync/index.js:251:28)
+      at sync (node_modules/gensync/index.js:89:14)
+      at fn (node_modules/@babel/core/src/errors/rewrite-stack-trace.ts:99:14)
+      at transformSync (node_modules/@babel/core/src/transform.ts:66:52)
+      at ScriptTransformer.transformSource (node_modules/@jest/transform/build/ScriptTransformer.js:545:31)
+      at ScriptTransformer._transformAndBuildScript (node_modules/@jest/transform/build/ScriptTransformer.js:674:40)
+      at ScriptTransformer.transform (node_modules/@jest/transform/build/ScriptTransformer.js:726:19)
+      at Object.require (src/routes/product.routes.js:3:27)
+      at Object.require (src/app.js:3:23)
+      at Object.require (src/__tests__/product.getbyid.test.js:2:13)
+
+FAIL src/__tests__/product.get.test.js
+  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     • If you need a custom transformation specify a "transform" option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    SyntaxError: /Users/shivachoudhry/Downloads/Ai-VendorHub/product/src/controllers/product.controller.js: Identifier 'productmodel' has already been declared. (149:6)
+
+      147 |
+      148 | const mongoose = require('mongoose');
+    > 149 | const productmodel = require('../models/product.model');
+          |       ^
+      150 |
+      151 | const updateProduct = async (req, res) => {
+      152 |   try {
+
+      1 | const express = require('express');
+      2 | const router = express.Router();
+    > 3 | const productController = require('../controllers/product.controller');
+        |                           ^
+      4 | const createAuthMiddleware = require('../middleware/auth.middleware');
+      5 | const upload = require('../middleware/upload.middleware');
+      6 | const { validateProductCreation } = require('../validators/product.validator');
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at ScopeHandler.raise [as checkRedeclarationInScope] (node_modules/@babel/parser/src/util/scope.ts:164:19)
+      at ScopeHandler.checkRedeclarationInScope [as declareName] (node_modules/@babel/parser/src/util/scope.ts:118:12)
+      at Parser.declareName [as declareNameFromIdentifier] (node_modules/@babel/parser/src/parser/lval.ts:876:16)
+      at Parser.declareNameFromIdentifier [as checkIdentifier] (node_modules/@babel/parser/src/parser/lval.ts:871:12)
+      at Parser.checkIdentifier [as checkLVal] (node_modules/@babel/parser/src/parser/lval.ts:763:12)
+      at Parser.checkLVal [as parseVarId] (node_modules/@babel/parser/src/parser/statement.ts:1633:10)
+      at Parser.parseVarId [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1582:12)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at evaluateSync (node_modules/gensync/index.js:251:28)
+      at sync (node_modules/gensync/index.js:89:14)
+      at fn (node_modules/@babel/core/src/errors/rewrite-stack-trace.ts:99:14)
+      at transformSync (node_modules/@babel/core/src/transform.ts:66:52)
+      at ScriptTransformer.transformSource (node_modules/@jest/transform/build/ScriptTransformer.js:545:31)
+      at ScriptTransformer._transformAndBuildScript (node_modules/@jest/transform/build/ScriptTransformer.js:674:40)
+      at ScriptTransformer.transform (node_modules/@jest/transform/build/ScriptTransformer.js:726:19)
+      at Object.require (src/routes/product.routes.js:3:27)
+      at Object.require (src/app.js:3:23)
+      at Object.require (src/__tests__/product.get.test.js:2:13)
+
+FAIL src/__tests__/product.post.test.js
+  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     • If you need a custom transformation specify a "transform" option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    SyntaxError: /Users/shivachoudhry/Downloads/Ai-VendorHub/product/src/controllers/product.controller.js: Identifier 'productmodel' has already been declared. (149:6)
+
+      147 |
+      148 | const mongoose = require('mongoose');
+    > 149 | const productmodel = require('../models/product.model');
+          |       ^
+      150 |
+      151 | const updateProduct = async (req, res) => {
+      152 |   try {
+
+      1 | const express = require('express');
+      2 | const router = express.Router();
+    > 3 | const productController = require('../controllers/product.controller');
+        |                           ^
+      4 | const createAuthMiddleware = require('../middleware/auth.middleware');
+      5 | const upload = require('../middleware/upload.middleware');
+      6 | const { validateProductCreation } = require('../validators/product.validator');
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at ScopeHandler.raise [as checkRedeclarationInScope] (node_modules/@babel/parser/src/util/scope.ts:164:19)
+      at ScopeHandler.checkRedeclarationInScope [as declareName] (node_modules/@babel/parser/src/util/scope.ts:118:12)
+      at Parser.declareName [as declareNameFromIdentifier] (node_modules/@babel/parser/src/parser/lval.ts:876:16)
+      at Parser.declareNameFromIdentifier [as checkIdentifier] (node_modules/@babel/parser/src/parser/lval.ts:871:12)
+      at Parser.checkIdentifier [as checkLVal] (node_modules/@babel/parser/src/parser/lval.ts:763:12)
+      at Parser.checkLVal [as parseVarId] (node_modules/@babel/parser/src/parser/statement.ts:1633:10)
+      at Parser.parseVarId [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1582:12)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at evaluateSync (node_modules/gensync/index.js:251:28)
+      at sync (node_modules/gensync/index.js:89:14)
+      at fn (node_modules/@babel/core/src/errors/rewrite-stack-trace.ts:99:14)
+      at transformSync (node_modules/@babel/core/src/transform.ts:66:52)
+      at ScriptTransformer.transformSource (node_modules/@jest/transform/build/ScriptTransformer.js:545:31)
+      at ScriptTransformer._transformAndBuildScript (node_modules/@jest/transform/build/ScriptTransformer.js:674:40)
+      at ScriptTransformer.transform (node_modules/@jest/transform/build/ScriptTransformer.js:726:19)
+      at Object.require (src/routes/product.routes.js:3:27)
+      at Object.require (src/app.js:3:23)
+      at Object.require (src/__tests__/product.post.test.js:3:13)
+
+FAIL src/__tests__/product.patch.test.js
+  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     • If you need a custom transformation specify a "transform" option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    SyntaxError: /Users/shivachoudhry/Downloads/Ai-VendorHub/product/src/controllers/product.controller.js: Identifier 'productmodel' has already been declared. (149:6)
+
+      147 |
+      148 | const mongoose = require('mongoose');
+    > 149 | const productmodel = require('../models/product.model');
+          |       ^
+      150 |
+      151 | const updateProduct = async (req, res) => {
+      152 |   try {
+
+      1 | const express = require('express');
+      2 | const router = express.Router();
+    > 3 | const productController = require('../controllers/product.controller');
+        |                           ^
+      4 | const createAuthMiddleware = require('../middleware/auth.middleware');
+      5 | const upload = require('../middleware/upload.middleware');
+      6 | const { validateProductCreation } = require('../validators/product.validator');
+
+      at constructor (node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at Parser.toParseError [as raise] (node_modules/@babel/parser/src/tokenizer/index.ts:1504:19)
+      at ScopeHandler.raise [as checkRedeclarationInScope] (node_modules/@babel/parser/src/util/scope.ts:164:19)
+      at ScopeHandler.checkRedeclarationInScope [as declareName] (node_modules/@babel/parser/src/util/scope.ts:118:12)
+      at Parser.declareName [as declareNameFromIdentifier] (node_modules/@babel/parser/src/parser/lval.ts:876:16)
+      at Parser.declareNameFromIdentifier [as checkIdentifier] (node_modules/@babel/parser/src/parser/lval.ts:871:12)
+      at Parser.checkIdentifier [as checkLVal] (node_modules/@babel/parser/src/parser/lval.ts:763:12)
+      at Parser.checkLVal [as parseVarId] (node_modules/@babel/parser/src/parser/statement.ts:1633:10)
+      at Parser.parseVarId [as parseVar] (node_modules/@babel/parser/src/parser/statement.ts:1582:12)
+      at Parser.parseVar [as parseVarStatement] (node_modules/@babel/parser/src/parser/statement.ts:1251:10)
+      at Parser.parseVarStatement [as parseStatementContent] (node_modules/@babel/parser/src/parser/statement.ts:612:21)
+      at Parser.parseStatementContent [as parseStatementLike] (node_modules/@babel/parser/src/parser/statement.ts:482:17)
+      at Parser.parseStatementLike [as parseModuleItem] (node_modules/@babel/parser/src/parser/statement.ts:419:17)
+      at Parser.parseModuleItem [as parseBlockOrModuleBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1443:16)
+      at Parser.parseBlockOrModuleBlockBody [as parseBlockBody] (node_modules/@babel/parser/src/parser/statement.ts:1417:10)
+      at Parser.parseBlockBody [as parseProgram] (node_modules/@babel/parser/src/parser/statement.ts:229:10)
+      at Parser.parseProgram [as parseTopLevel] (node_modules/@babel/parser/src/parser/statement.ts:203:25)
+      at Parser.parseTopLevel [as parse] (node_modules/@babel/parser/src/parser/index.ts:83:25)
+      at parse (node_modules/@babel/parser/src/index.ts:86:38)
+      at parser (node_modules/@babel/core/src/parser/index.ts:29:19)
+          at parser.next (<anonymous>)
+      at normalizeFile (node_modules/@babel/core/src/transformation/normalize-file.ts:50:24)
+          at normalizeFile.next (<anonymous>)
+      at run (node_modules/@babel/core/src/transformation/index.ts:41:36)
+          at run.next (<anonymous>)
+      at transform (node_modules/@babel/core/src/transform.ts:29:20)
+          at transform.next (<anonymous>)
+      at evaluateSync (node_modules/gensync/index.js:251:28)
+      at sync (node_modules/gensync/index.js:89:14)
+      at fn (node_modules/@babel/core/src/errors/rewrite-stack-trace.ts:99:14)
+      at transformSync (node_modules/@babel/core/src/transform.ts:66:52)
+      at ScriptTransformer.transformSource (node_modules/@jest/transform/build/ScriptTransformer.js:545:31)
+      at ScriptTransformer._transformAndBuildScript (node_modules/@jest/transform/build/ScriptTransformer.js:674:40)
+      at ScriptTransformer.transform (node_modules/@jest/transform/build/ScriptTransformer.js:726:19)
+      at Object.require (src/routes/product.routes.js:3:27)
+      at Object.require (src/app.js:3:23)
+      at Object.require (src/__tests__/product.patch.test.js:15:13)
+
+Failed to collect coverage from /Users/shivachoudhry/Downloads/Ai-VendorHub/product/src/controllers/product.controller.js
+ERROR: /Users/shivachoudhry/Downloads/Ai-VendorHub/product/src/controllers/product.controller.js: Identifier 'productmodel' has already been declared. (149:6)
+
+  147 |
+  148 | const mongoose = require('mongoose');
+> 149 | const productmodel = require('../models/product.model');
+      |       ^
+  150 |
+  151 | const updateProduct = async (req, res) => {
+  152 |   try {
+STACK: SyntaxError: /Users/shivachoudhry/Downloads/Ai-VendorHub/product/src/controllers/product.controller.js: Identifier 'productmodel' has already been declared. (149:6)
+
+  147 |
+  148 | const mongoose = require('mongoose');
+> 149 | const productmodel = require('../models/product.model');
+      |       ^
+  150 |
+  151 | const updateProduct = async (req, res) => {
+  152 |   try {
+    at constructor (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:365:19)
+    at Parser.raise (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:6599:19)
+    at ScopeHandler.checkRedeclarationInScope (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:1619:19)
+    at ScopeHandler.declareName (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:1585:12)
+    at Parser.declareNameFromIdentifier (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:7567:16)
+    at Parser.checkIdentifier (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:7563:12)
+    at Parser.checkLVal (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:7500:12)
+    at Parser.parseVarId (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:13412:10)
+    at Parser.parseVar (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:13383:12)
+    at Parser.parseVarStatement (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:13230:10)
+    at Parser.parseStatementContent (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:12851:23)
+    at Parser.parseStatementLike (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:12767:17)
+    at Parser.parseModuleItem (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:12744:17)
+    at Parser.parseBlockOrModuleBlockBody (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:13316:36)
+    at Parser.parseBlockBody (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:13309:10)
+    at Parser.parseProgram (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:12622:10)
+    at Parser.parseTopLevel (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:12612:25)
+    at Parser.parse (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:14488:25)
+    at parse (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/parser/lib/index.js:14522:38)
+    at parser (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/core/lib/parser/index.js:41:34)
+    at parser.next (<anonymous>)
+    at normalizeFile (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+    at normalizeFile.next (<anonymous>)
+    at run (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/core/lib/transformation/index.js:22:50)
+    at run.next (<anonymous>)
+    at transform (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/core/lib/transform.js:22:33)
+    at transform.next (<anonymous>)
+    at step (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/gensync/index.js:261:32)
+    at /Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/gensync/index.js:223:11)
+    at /Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/gensync/index.js:189:28
+    at /Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+    at /Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/gensync/index.js:113:33
+    at step (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/gensync/index.js:287:14)
+    at /Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/gensync/index.js:273:13
+    at async.call.result.err.err (/Users/shivachoudhry/Downloads/Ai-VendorHub/product/node_modules/gensync/index.js:223:11)
+-----------------------|---------|----------|---------|---------|-------------------
+File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-----------------------|---------|----------|---------|---------|-------------------
+All files              |       0 |        0 |       0 |       0 |                   
+ src                   |       0 |        0 |       0 |       0 |                   
+  app.js               |       0 |        0 |       0 |       0 | 1-32              
+ src/middleware        |       0 |        0 |       0 |       0 |                   
+  auth.middleware.js   |       0 |        0 |       0 |       0 | 1-31              
+  upload.middleware.js |       0 |        0 |       0 |       0 | 1-26              
+ src/models            |       0 |      100 |     100 |       0 |                   
+  product.model.js     |       0 |      100 |     100 |       0 | 1-43              
+ src/routes            |       0 |      100 |     100 |       0 |                   
+  product.routes.js    |       0 |      100 |     100 |       0 | 1-27              
+ src/services          |       0 |      100 |       0 |       0 |                   
+  imagekit.service.js  |       0 |      100 |       0 |       0 | 1-43              
+ src/validators        |       0 |        0 |       0 |       0 |                   
+  product.validator.js |       0 |        0 |       0 |       0 | 1-72              
+-----------------------|---------|----------|---------|---------|-------------------
+Jest: "global" coverage threshold for statements (60%) not met: 0%
+Jest: "global" coverage threshold for branches (60%) not met: 0%
+Jest: "global" coverage threshold for lines (60%) not met: 0%
+Jest: "global" coverage threshold for functions (60%) not met: 0%
+Test Suites: 4 failed, 4 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        0.829 s
+Ran all test suites.

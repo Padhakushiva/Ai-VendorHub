@@ -4,7 +4,6 @@ const productSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
-        trim: true,
     },
     description: {
         type: String,
@@ -21,22 +20,23 @@ const productSchema = new mongoose.Schema({
         type: String,
         enum: ['USD', 'INR'],
         default: 'INR',
-    },
+        },
 
-    },
-    
+    },  
     images: [
         {
-            fileId: String,
+            id: String,
             url: String,
-            name: String,
+            thumbnail: String,
         },
     ],
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
+    seller: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+    }
 });
+
+productSchema.index({ title: 'text', description: 'text' });
 
 const Product = mongoose.model('Product', productSchema);
 
