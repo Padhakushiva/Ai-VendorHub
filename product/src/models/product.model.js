@@ -33,7 +33,12 @@ const productSchema = new mongoose.Schema({
     seller: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-    }
+    },
+    stock: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
 });
 
 productSchema.index({ title: 'text', description: 'text' });

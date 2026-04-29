@@ -3,7 +3,7 @@ const router = express.Router();
 const productController = require('../controllers/product.controller');
 const createAuthMiddleware = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
-const { validateProductCreation } = require('../validators/product.validator');
+const { parseNestedFormData, validateProductCreation } = require('../validators/product.validator');
 
 // POST /api/product/ - Create product with images
 
@@ -11,6 +11,7 @@ router.post(
   '/',
   createAuthMiddleware(['admin', 'seller']),
   upload.array('images', 5),
+  parseNestedFormData,
   validateProductCreation,
   productController.createProduct
 );
@@ -28,6 +29,8 @@ router.get('/:id', productController.getProductById);
 router.patch(
   '/:id',
   createAuthMiddleware(['admin', 'seller']),
+  upload.none(),
+  parseNestedFormData,
   productController.updateProduct
 );
 

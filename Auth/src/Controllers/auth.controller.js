@@ -5,7 +5,7 @@ const redis = require("../DB/redis");
 
 //REGISTER USER
 async function registeruser(req, res) {
-  const { username, email, password, fullName, role } = req.body;
+  const { username, email, password, fullName, role, address } = req.body;
 
   const isUserAlreadyExist = await userModel.findOne({
     $or: [{ username }, { email }],
@@ -26,6 +26,16 @@ async function registeruser(req, res) {
       firstName: fullName.firstName,
       lastName: fullName.lastName,
     },
+    addresses: [
+      {
+        addressLine: address.addressLine,
+        city: address.city,
+        state: address.state,
+        pincode: address.pincode,
+        phone: address.phone,
+        default: true,
+      },
+    ],
   };
 
   if (role) {
@@ -59,6 +69,7 @@ async function registeruser(req, res) {
       username: user.username,
       email: user.email,
       fullName: user.fullName,
+      addresses: user.addresses || [],
       role: user.role,
     },
   });
@@ -169,6 +180,8 @@ async function loginuser(req, res) {
 
         fullName: user.fullName,
 
+        addresses: user.addresses || [],
+
         role: user.role,
       },
     });
@@ -204,6 +217,7 @@ async function getCurrentUser(req, res) {
         username: user.username,
         email: user.email,
         fullName: user.fullName,
+        addresses: user.addresses || [],
         role: user.role,
       },
     });
@@ -335,6 +349,7 @@ async function addAddress(req, res) {
       success: true,
       message: "Address added successfully",
       address: addedAddress,
+      addresses: user.addresses || [],
     });
   } catch (error) {
     console.error("Error adding address:", error);

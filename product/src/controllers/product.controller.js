@@ -10,7 +10,8 @@ const productmodel = require("../models/product.model");
  */
 const createProduct = async (req, res) => {
   try {
-    const { title, amount, description, currency = "INR" } = req.body;
+    const { title, description, stock, price = {} } = req.body;
+    const { amount, currency = "INR" } = price;
     const sellerId = req.user.id;
 
     // At this point, data has been validated by express-validator middleware
@@ -39,16 +40,13 @@ const createProduct = async (req, res) => {
     // Create product 
     const product = new productmodel({
       title: title,
-
       description: description || "",
-
+      stock: Number(stock) || 0,
       price: {
         amount: Number(amount),
         currency: currency || "INR",
       },
-
       images: images,
-
       seller: sellerId, // REQUIRED
     });
     const savedProduct = await product.save();
@@ -119,10 +117,17 @@ const getProductById = async (req, res) => {
   try {
     const product = await productmodel.findById(id);   
 
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found',
+      });
+    }
+
     return res.status(200).json({
       success: true,
       message: 'Product fetched successfully',
-      Product: product,
+      data: product,
     });
 
   } catch (error) {
@@ -133,14 +138,6 @@ const getProductById = async (req, res) => {
       error: error.message,
     });
   }
-  
-  if (!product) {
-    return res.status(404).json({
-      success: false,
-      message: 'Product not found',
-    });
-  }
-
 }
 
 const updateProduct = async (req, res) => {
@@ -156,8 +153,13 @@ const updateProduct = async (req, res) => {
       });
     }
 
+    // Debug: Log incoming request body
+    console.log('PATCH request body:', req.body);
+    console.log('PATCH request body keys:', Object.keys(req.body));
+
     // Check if body has any update fields
     if (!req.body || Object.keys(req.body).length === 0) {
+      console.log('Empty body detected');
       return res.status(400).json({
         success: false,
         message: 'No fields to update',
@@ -194,8 +196,11 @@ const updateProduct = async (req, res) => {
     const allowedFields = [
       'title',
       'description',
+      'price',
       'price.amount',
       'price.currency',
+      'stock',
+      'category',
     ];
 
     // Validate and update fields
@@ -214,13 +219,41 @@ const updateProduct = async (req, res) => {
           product.title = value.toString().trim();
         } else if (key === 'description') {
           product.description = value.toString();
+        } else if (key === 'price' && typeof value === 'object') {
+          // Handle nested price object
+          if (value.amount !== undefined) {
+            const amount = Number(value.amount);
+            if (isNaN(amount)) {
+              return res.status(400).json({
+                success: false,
+                message: 'Price amount must be a valid number',
+              });
+            }
+            if (amount < 0) {
+              return res.status(400).json({
+                success: false,
+                message: 'Price cannot be negative',
+              });
+            }
+            product.price.amount = amount;
+          }
+          if (value.currency !== undefined) {
+            const validCurrencies = ['USD', 'INR', 'EUR', 'GBP', 'JPY'];
+            if (!validCurrencies.includes(value.currency.toUpperCase())) {
+              return res.status(400).json({
+                success: false,
+                message: 'Invalid currency. Must be one of: USD, INR, EUR, GBP, JPY',
+              });
+            }
+            product.price.currency = value.currency.toUpperCase();
+          }
         } else if (key === 'price.amount') {
-          // Validate price is a number
+          // Handle flat price.amount field from form-data
           const amount = Number(value);
           if (isNaN(amount)) {
             return res.status(400).json({
               success: false,
-              message: 'Price must be a valid number',
+              message: 'Price amount must be a valid number',
             });
           }
           if (amount < 0) {
@@ -231,15 +264,26 @@ const updateProduct = async (req, res) => {
           }
           product.price.amount = amount;
         } else if (key === 'price.currency') {
-          // Validate currency format (3 letter code)
-          const currencyCode = value.toString().toUpperCase();
-          if (!/^[A-Z]{3}$/.test(currencyCode)) {
+          // Handle flat price.currency field from form-data
+          const validCurrencies = ['USD', 'INR', 'EUR', 'GBP', 'JPY'];
+          if (!validCurrencies.includes(value.toString().toUpperCase())) {
             return res.status(400).json({
               success: false,
-              message: 'Invalid currency code. Must be 3 letters (e.g., USD, EUR, GBP)',
+              message: 'Invalid currency. Must be one of: USD, INR, EUR, GBP, JPY',
             });
           }
-          product.price.currency = currencyCode;
+          product.price.currency = value.toString().toUpperCase();
+        } else if (key === 'stock') {
+          const stock = Number(value);
+          if (isNaN(stock) || stock < 0) {
+            return res.status(400).json({
+              success: false,
+              message: 'Stock must be a non-negative number',
+            });
+          }
+          product.stock = stock;
+        } else if (key === 'category') {
+          product.category = value.toString();
         }
       }
     }

@@ -50,6 +50,37 @@ const registerUserValidation=[
     .optional()
     .isIn(['user', 'seller'])
     .withMessage("Invalid role"),
+
+    body('address.addressLine')
+    .isString()
+    .withMessage('Address line must be a string')
+    .notEmpty()
+    .withMessage('Address line is required'),
+
+    body('address.city')
+    .isString()
+    .withMessage('City must be a string')
+    .notEmpty()
+    .withMessage('City is required'),
+
+    body('address.state')
+    .isString()
+    .withMessage('State must be a string')
+    .notEmpty()
+    .withMessage('State is required'),
+
+    body('address.pincode')
+    .matches(/^\d{6}$/)
+    .withMessage('Pincode must be 6 digits')
+    .notEmpty()
+    .withMessage('Pincode is required'),
+
+    body('address.phone')
+    .matches(/^\d{10}$/)
+    .withMessage('Phone number must be 10 digits')
+    .notEmpty()
+    .withMessage('Phone number is required'),
+
     respondWithValidationErrors
 ]
 

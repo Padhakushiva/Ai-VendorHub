@@ -1,6 +1,25 @@
 const { body, validationResult } = require('express-validator');
 
 /**
+ * Middleware to parse nested form-data fields
+ * Converts flat keys like "price.amount" into nested objects
+ */
+const parseNestedFormData = (req, res, next) => {
+  if (req.body) {
+    // Handle nested price fields
+    if (req.body['price.amount'] || req.body['price.currency']) {
+      req.body.price = {
+        amount: req.body['price.amount'],
+        currency: req.body['price.currency'] || 'INR'
+      };
+      delete req.body['price.amount'];
+      delete req.body['price.currency'];
+    }
+  }
+  next();
+};
+
+/**
  * Middleware to handle validation errors
  */
 const handleValidationErrors = (req, res, next) => {
@@ -36,8 +55,8 @@ const validateProductCreation = [
     .isLength({ min: 3, max: 200 })
     .withMessage('Title must be between 3 and 200 characters'),
 
-  // Amount validation (convert string to number for form data)
-  body('amount')
+  // Amount validation (nested in price object)
+  body('price.amount')
     .notEmpty()
     .withMessage('Amount is required')
     .toFloat()
@@ -48,8 +67,8 @@ const validateProductCreation = [
       return true;
     }),
 
-  // Currency validation (optional)
-  body('currency')
+  // Currency validation (nested in price object)
+  body('price.currency')
     .optional()
     .trim()
     .isIn(['USD', 'INR', 'EUR', 'GBP', 'JPY'])
@@ -64,11 +83,33 @@ const validateProductCreation = [
     .withMessage('Description must be a string')
     .isLength({ max: 1000 })
     .withMessage('Description must not exceed 1000 characters'),
+
+  // Stock validation
+  body('stock')
+    .notEmpty()
+    .withMessage('Stock is required')
+    .toInt()
+    .custom((value) => {
+      if (isNaN(value) || value < 0) {
+        throw new Error('Stock must be a non-negative number');
+      }
+      return true;
+    }),
+
+  // Category validation (optional)
+  body('category')
+    .optional()
+    .trim()
+    .isString()
+    .withMessage('Category must be a string'),
+
     handleValidationErrors,
 ];
 
 
 
 module.exports = {
+  parseNestedFormData,
   validateProductCreation,
+  handleValidationErrors,
 };
