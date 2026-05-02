@@ -1,13 +1,13 @@
 require('dotenv').config();
-
 const app=require('./src/app');
 const connectDB=require('./src/DB/db');
 
-(async () => {
+const { connect } = require('./src/Broker/broker');
 
-    
-    app.listen(3001, () => {
-        console.log('Server is running on port 3001');
-    });
-    await connectDB();
-})();
+ connectDB();
+connect();  
+
+app.listen(3001, ()=>{
+    console.log('Server is running on port 3001');
+   
+})

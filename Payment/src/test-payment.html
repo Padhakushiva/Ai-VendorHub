@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <h1>Test Payment</h1>
+    <button onclick="initiatePayment()">Pay ₹1000</button>
+
+    <script>
+        async function initiatePayment() {
+            // Get token from localStorage or prompt user
+            const TOKEN = prompt("Enter your JWT token (from login):");
+            if (!TOKEN) {
+                alert("Token is required!");
+                return;
+            }
+
+            const ORDER_ID = prompt("Enter your Order ID:");
+            if (!ORDER_ID) {
+                alert("Order ID is required!");
+                return;
+            }
+
+            try {
+                // Step 1: Create payment
+                console.log("Creating payment for order:", ORDER_ID);
+                const res = await fetch(`http://localhost:3004/api/payment/create/${ORDER_ID}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors',
+                    credentials: 'include'
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.message || `Error: ${res.status}`);
+                }
+
+                const data = await res.json();
+                const { razorpayOrderId } = data.payment;
+
+            // Step 2: Open Razorpay Checkout
+            const options = {
+                key: "rzp_test_SjGEyv5Twozni3", // Test key
+                order_id: razorpayOrderId,
+                amount: 100000,
+                currency: "INR",
+                name: "AI VendorHub",
+                handler: async function(response) {
+                    console.log("Payment Response:", response);
+                    
+                    try {
+                        // Step 3: Verify payment
+                        const verifyRes = await fetch('http://localhost:3004/api/payment/verify', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${TOKEN}`,
+                                'Content-Type': 'application/json'
+                            },
+                            mode: 'cors',
+                            credentials: 'include',
+                            body: JSON.stringify({
+                                razorpayOrderId: razorpayOrderId,
+                                paymentId: response.razorpay_payment_id,
+                                signature: response.razorpay_signature
+                            })
+                        });
+
+                        const verifyData = await verifyRes.json();
+                        console.log("Verification:", verifyData);
+                        alert(verifyData.message);
+                    } catch (err) {
+                        console.error("Verification error:", err);
+                        alert("Payment verification failed: " + err.message);
+                    }
+                }
+            };
+
+            new Razorpay(options).open();
+            } catch (error) {
+                console.error("Payment error:", error);
+                alert("Error: " + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
