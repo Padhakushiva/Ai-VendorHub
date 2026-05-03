@@ -25,11 +25,17 @@ const graph = new StateGraph(MessagesAnnotation)
             }
             const toolInput = call.args
 
-            console.log("Invoking tool:", call.name, "with input:", call)
+            console.log("🔧 Invoking tool:", call.name, "with input:", JSON.stringify(call, null, 2))
 
-            const toolResult = await tool.func({ ...toolInput, token: config.metadata.token })
-
-            return new ToolMessage({ content: toolResult, name: call.name })
+            try {
+                const toolResult = await tool.func({ ...toolInput, token: config.metadata.token })
+                console.log("✅ Tool result:", toolResult.substring(0, 100) + (toolResult.length > 100 ? '...' : ''))
+                return new ToolMessage({ content: toolResult, name: call.name })
+            } catch (error) {
+                console.error(`❌ Tool execution error for ${call.name}:`, error.message)
+                const errorMessage = `Tool ${call.name} failed: ${error.message}`
+                return new ToolMessage({ content: errorMessage, name: call.name })
+            }
 
         }))
 
@@ -38,12 +44,16 @@ const graph = new StateGraph(MessagesAnnotation)
         return state
     })
     .addNode("chat", async (state, config) => {
-        const response = await model.invoke(state.messages, { tools: [ tools.searchProduct, tools.addProductToCart ] })
+        try {
+            const response = await model.invoke(state.messages, { tools: [ tools.searchProduct, tools.addProductToCart ] })
 
+            state.messages.push(new AIMessage({ content: response.text, tool_calls: response.tool_calls }))
 
-        state.messages.push(new AIMessage({ content: response.text, tool_calls: response.tool_calls }))
-
-        return state
+            return state
+        } catch (error) {
+            console.error("❌ Model invocation error:", error.message)
+            throw error
+        }
 
     })
     .addEdge("__start__", "chat")

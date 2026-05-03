@@ -1,6 +1,6 @@
 const orderModel = require("../models/order.model")
 const axios = require("axios")
-const { publishToQueue } = require("../broker/borker");
+const { publishToQueue } = require("../Broker/broker");
 
 
 async function createOrder(req, res) {

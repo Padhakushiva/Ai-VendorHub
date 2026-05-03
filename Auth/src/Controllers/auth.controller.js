@@ -1,4 +1,5 @@
 const userModel = require("../Models/user.model");
+const sellerModel = require("../Models/seller.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const redis = require("../DB/redis");
@@ -47,13 +48,20 @@ async function registeruser(req, res) {
 
 
 
-  await publishToQueue("AUTH_NOTIFICATION.USER_CREATED", {
-    id: user._id,
-    username: user.username,
-    email: user.email,
-    fullName: user.fullName,
-    role: user.role,
-  });
+  // publish notifications in parallel
+  await Promise.all([
+    publishToQueue("AUTH_NOTIFICATION.USER_CREATED", {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+    }),
+
+    publishToQueue("AUTH_SELLER_DASHBOARD.USER_CREATED", user),
+  ]);
+
+  
 
   const token = jwt.sign(
     {
@@ -85,6 +93,88 @@ async function registeruser(req, res) {
     },
   });
 }
+
+//REGISTER SELLER
+
+async function registerSeller
+(req, res) {
+  const { username, email, password, fullName, role } = req.body;
+
+  const isSellerAlreadyExist = await sellerModel.findOne({
+    $or: [{ username }, { email }],
+  });
+
+  if (isSellerAlreadyExist) {
+    return res.status(409).json({
+      message: "Seller   already exists with this email or username",
+    });
+  }
+
+  const HashedPassword = await bcrypt.hash(password, 10);
+  const sellerData = {
+    username,
+    email,
+    password: HashedPassword,
+    fullName: {
+      firstName: fullName.firstName,
+      lastName: fullName.lastName,
+    }
+  };
+
+  if (role) {
+    sellerData.role = role;
+  }
+
+  const seller = await sellerModel.create(sellerData);
+
+
+
+  // publish notifications in parallel
+  await Promise.all([
+    publishToQueue("AUTH_NOTIFICATION.SELLER_CREATED", {
+      id: seller._id,
+      username: seller.username,
+      email: seller.email,
+      fullName: seller.fullName,
+      role: seller.role,
+    }),
+
+    publishToQueue("AUTH_SELLER_DASHBOARD.SELLER_CREATED", seller),
+  ]);
+
+  
+
+  const token = jwt.sign(
+    {
+      id: seller._id,
+      username: seller.username,
+      email: seller.email,
+      role: seller.role,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" },
+  );
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 3600000, // 1 hour
+  });
+
+  return res.status(201).json({
+    success: true,
+    message: "Seller registered successfully",
+    seller: {
+      username: seller.username,
+      email: seller.email,
+      fullName: seller.fullName,
+      role: seller.role,
+    }
+  });
+}
+
+
 
 //LOGIN USER
 async function loginuser(req, res) {
@@ -194,6 +284,126 @@ async function loginuser(req, res) {
         addresses: user.addresses || [],
 
         role: user.role,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+
+      message: "Internal server error",
+    });
+  }
+}
+
+//LOGIN SELLER
+
+async function loginSeller(req, res) {
+  try {
+    let { username, email, password } = req.body;
+
+    // Validate required fields
+
+    if ((!email && !username) || !password) {
+      return res.status(400).json({
+        success: false,
+
+        message: "Email or username and password are required",
+      });
+    }
+
+    // Normalize email
+
+    if (email) {
+      email = email.toLowerCase();
+    }
+
+    // Build query dynamically
+
+    let orConditions = [];
+
+    if (email) {
+      orConditions.push({ email });
+    }
+
+    if (username) {
+      orConditions.push({ username });
+    }
+
+    // Find seller
+
+    const seller = await sellerModel
+      .findOne({
+        $or: orConditions,
+      })
+      .select("+password");
+
+    if (!seller) {
+      return res.status(401).json({
+        success: false,
+
+        message: "Invalid username, email or password",
+      });
+    }
+
+    // Compare password
+
+    const isPasswordMatch = await bcrypt.compare(password, seller.password);
+
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        success: false,
+
+        message: "Invalid username, email or password",
+      });
+    }
+
+    // Generate token
+
+    const token = jwt.sign(
+      {
+        id: seller._id,
+
+        username: seller.username,
+
+        email: seller.email,
+
+        role: seller.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      },
+    );
+
+    // Set cookie
+
+    res.cookie("token", token, {
+      httpOnly: true,
+
+      secure: true,
+
+      sameSite: "strict",
+
+      maxAge: 3600000,
+    });
+
+    return res.status(200).json({
+      success: true,
+
+      message: "Login successful",
+
+      user: {
+        id: seller._id,
+
+        username: seller.username,
+
+        email: seller.email,
+
+        fullName: seller.fullName,
+
+       
+
+        role: seller.role,
       },
     });
   } catch (error) {
@@ -438,4 +648,6 @@ module.exports = {
   getUserAddresses,
   addAddress,
   deleteAddress,
+  registerSeller,
+  loginSeller
 };

@@ -1,5 +1,5 @@
 {
-  "name": "ai",
+  "name": "seller_dashboard",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -12,19 +12,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@langchain/core": "^1.1.42",
-    "@langchain/google-genai": "^0.0.21",
-    "@langchain/langgraph": "^1.2.9",
-    "@langchain/openai": "^1.4.5",
-    "axios": "^1.15.2",
-    "cookie": "^1.1.1",
+    "amqplib": "^1.0.3",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.6.1",
-    "nodemon": "^3.1.14",
-    "socket.io": "^4.8.3",
-    "zod": "^4.4.1"
+    "mongoose": "^9.6.1"
   }
 }

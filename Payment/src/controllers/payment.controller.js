@@ -61,7 +61,7 @@ async function createPayment(req,res){
             amount: price * 100,
             currency: "INR"
         });
-        const  payment=new paymentModels({
+        const  payment=await paymentModels.create({
             order:orderId,
             razorpayOrderId:order.id,
             user:req.user.id,
@@ -69,9 +69,10 @@ async function createPayment(req,res){
                 amount:price,
                 currency:"INR"
             }
-
         })
-        await payment.save();
+        
+        await publishToQueue("PAYMENT_SELLER_DASHBOARD.PAYMENT_CREATED",payment);
+
         return res.status(201).json({
             message:"Payment initiated successfully",
             payment
@@ -104,7 +105,7 @@ async function verifyPayment(req,res){
             });
         }
 
-        const payment=await paymentModels.findOne({razorpayOrderId:razorpayOrderId, status:"PENDING"});
+        const payment=await paymentModels.findOne({razorpayOrderId:razorpayOrderId, status:"pending"});
 
         if(!payment){
             return res.status(404).json({
@@ -125,13 +126,26 @@ async function verifyPayment(req,res){
             orderId: payment.order,
             paymentId: payment._id,
             userId: payment.user,
-            amount: payment.price.amount/100, // Convert back to rupees
+            amount: payment.price.amount,
             currency: payment.price.currency
         });
 
         res.status(200).json({
             message:"Payment verified successfully",
             payment
+        });
+
+        await publishToQueue("PAYMENT_SELLER_DASHBOARD.PAYMENT_UPDATED", payment);
+        
+        await publishToQueue("PAYMENT_ORDERS.PAYMENT_INITIATED", {
+            email: req.user.email,
+            orderId: payment.order,
+            paymentId: payment._id,
+            userId: payment.user,
+            amount: payment.price.amount,
+            currency: payment.price.currency,
+            username:req.user.username,
+
         });
 
     } catch (error) {

@@ -5,11 +5,17 @@ const { authMiddleware } = require("../middleware/auth.middleware");
 
 const router = express.Router();
 
-// POST /api/auth/register
+// POST /api/auth/register----user registration
 router.post('/auth/register', validatorMiddleware.registerUserValidation, authController.registeruser);
+
+// POST /api/auth/register----seller registration
+router.post('/auth/register/seller', validatorMiddleware.registerSellerValidation, authController.registerSeller);
 
 // POST /api/auth/login
 router.post('/auth/login', validatorMiddleware.loginUserValidation, authController.loginuser);
+
+// POST /api/auth/login/seller
+router.post('/auth/login/seller', validatorMiddleware.loginUserValidation, authController.loginSeller);
 
 // GET /api/auth/me
 router.get('/auth/me', authMiddleware, authController.getCurrentUser);

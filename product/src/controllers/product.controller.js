@@ -1,7 +1,7 @@
 const { uploadToImageKit } = require("../services/imagekit.service");
 const mongoose = require('mongoose');
 const productmodel = require("../models/product.model");
-
+const {publishToQueue}=require('../Broker/broker');
 /**
  * Create a new product with images
  * POST /api/production/
@@ -49,6 +49,20 @@ const createProduct = async (req, res) => {
       images: images,
       seller: sellerId, // REQUIRED
     });
+
+    publishToQueue('PRODUCT_SELLER_DASHBOARD.product.created', product);
+
+    publishToQueue('PRODUCT_NOTIFICATION.product.created', {
+      email: req.user.email,
+      productId: product._id,
+      sellerId: product.seller,
+      title: product.title,
+      description: product.description,
+      price: product.price,
+      timestamp: new Date().toISOString(),
+    });
+
+
     const savedProduct = await product.save();
 
     return res.status(201).json({
