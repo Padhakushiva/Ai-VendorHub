@@ -23,6 +23,9 @@ const productSchema = new mongoose.Schema({
         },
 
     },  
+    category: {type:String},
+    tags:[{type:String}],
+    brand:{type:String},
     images: [
         {
             id: String,

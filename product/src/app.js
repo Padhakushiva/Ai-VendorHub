@@ -7,6 +7,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+
+app.get("/",(req,res)=>{
+    res.status(200).json({message:"Product API is running"});
+});
+
 app.use('/api/product', productRoutes);
 
 // Error handling middleware for multer and other errors

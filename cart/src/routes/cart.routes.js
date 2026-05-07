@@ -11,6 +11,10 @@ const {
 const router = express.Router();
 
 
+router.get("/",(req,res)=>{
+    res.status(200).json({message:"Cart API is running"});
+});
+
 
 router.post('/items', createAuthMiddleware(['user']), validateAddItemToCart, addItemToCart);
 

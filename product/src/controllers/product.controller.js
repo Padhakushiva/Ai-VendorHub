@@ -1,31 +1,91 @@
 const { uploadToImageKit } = require("../services/imagekit.service");
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const productmodel = require("../models/product.model");
-const {publishToQueue}=require('../Broker/broker');
+const { publishToQueue } = require("../Broker/broker");
+
+const parseTags = (tags) => {
+  if (!tags) return [];
+
+  if (Array.isArray(tags)) {
+    return tags
+      .map((tag) => tag.toString().trim().toLowerCase())
+      .filter(Boolean);
+  }
+
+  return tags
+    .toString()
+    .replace("[", "")
+    .replace("]", "")
+    .split(",")
+    .map((tag) => tag.trim().toLowerCase())
+    .filter(Boolean);
+};
+
+const getPriceFromBody = (body) => {
+  const amountValue = body["price.amount"] || body?.price?.amount;
+  const currencyValue =
+    body["price.currency"] || body?.price?.currency || "INR";
+
+  return {
+    amount: Number(amountValue),
+    currency: currencyValue.toString().toUpperCase(),
+  };
+};
+
 /**
- * Create a new product with images
- * POST /api/production/
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
+ * Create Product
+ * POST /api/product/
  */
 const createProduct = async (req, res) => {
   try {
-    const { title, description, stock, price = {} } = req.body;
-    const { amount, currency = "INR" } = price;
+    console.log("CREATE PRODUCT BODY:", req.body);
+
+    const { title, description, stock, category, brand } = req.body;
+
     const sellerId = req.user.id;
 
-    // At this point, data has been validated by express-validator middleware
-    // File uploads have been validated by multer middleware
+    const { amount, currency } = getPriceFromBody(req.body);
 
-    // Upload images to ImageKit if provided
+    if (!title || title.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Title is required",
+      });
+    }
+
+    if (isNaN(amount)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid price amount",
+      });
+    }
+
+    if (amount < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Price cannot be negative",
+      });
+    }
+
+    const validCurrencies = ["USD", "INR"];
+
+    if (!validCurrencies.includes(currency)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid currency. Must be USD or INR",
+      });
+    }
+
+    const parsedTags = parseTags(req.body.tags);
+
     let images = [];
 
     if (req.files && req.files.length > 0) {
       try {
         images = await Promise.all(
           req.files.map((file) =>
-            uploadToImageKit(file.buffer, file.originalname),
-          ),
+            uploadToImageKit(file.buffer, file.originalname)
+          )
         );
       } catch (uploadError) {
         console.error("Error uploading images to ImageKit:", uploadError);
@@ -37,33 +97,37 @@ const createProduct = async (req, res) => {
       }
     }
 
-    // Create product 
     const product = new productmodel({
-      title: title,
+      title: title.trim(),
       description: description || "",
       stock: Number(stock) || 0,
       price: {
-        amount: Number(amount),
-        currency: currency || "INR",
+        amount,
+        currency,
       },
-      images: images,
-      seller: sellerId, // REQUIRED
+      category: category ? category.toString().trim() : undefined,
+      brand: brand ? brand.toString().trim() : undefined,
+      tags: parsedTags,
+      images,
+      seller: sellerId,
     });
-
-    publishToQueue('PRODUCT_SELLER_DASHBOARD.product.created', product);
-
-    publishToQueue('PRODUCT_NOTIFICATION.product.created', {
-      email: req.user.email,
-      productId: product._id,
-      sellerId: product.seller,
-      title: product.title,
-      description: product.description,
-      price: product.price,
-      timestamp: new Date().toISOString(),
-    });
-
 
     const savedProduct = await product.save();
+
+    publishToQueue("PRODUCT_SELLER_DASHBOARD.product.created", savedProduct);
+
+    publishToQueue("PRODUCT_NOTIFICATION.product.created", {
+      email: req.user.email,
+      productId: savedProduct._id,
+      sellerId: savedProduct.seller,
+      title: savedProduct.title,
+      description: savedProduct.description,
+      price: savedProduct.price,
+      category: savedProduct.category,
+      brand: savedProduct.brand,
+      tags: savedProduct.tags,
+      timestamp: new Date().toISOString(),
+    });
 
     return res.status(201).json({
       success: true,
@@ -80,9 +144,22 @@ const createProduct = async (req, res) => {
   }
 };
 
+/**
+ * Get All Products
+ * GET /api/product/
+ */
 const getProducts = async (req, res) => {
   try {
-    const { q, minprice, maxprice, skip = 0, limit = 20 } = req.query;
+    const {
+      q,
+      minprice,
+      maxprice,
+      category,
+      brand,
+      tag,
+      skip = 0,
+      limit = 20,
+    } = req.query;
 
     const filter = {};
 
@@ -90,16 +167,28 @@ const getProducts = async (req, res) => {
       filter.$text = { $search: q };
     }
 
+    if (category) {
+      filter.category = category;
+    }
+
+    if (brand) {
+      filter.brand = brand;
+    }
+
+    if (tag) {
+      filter.tags = tag.toString().toLowerCase();
+    }
+
     if (minprice) {
-      filter['price.amount'] = {
-        ...filter['price.amount'],
+      filter["price.amount"] = {
+        ...filter["price.amount"],
         $gte: Number(minprice),
       };
     }
 
     if (maxprice) {
-      filter['price.amount'] = {
-        ...filter['price.amount'],
+      filter["price.amount"] = {
+        ...filter["price.amount"],
         $lte: Number(maxprice),
       };
     }
@@ -111,349 +200,330 @@ const getProducts = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Products fetched successfully',
+      message: "Products fetched successfully",
       data: products,
     });
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error("Error fetching products:", error);
     return res.status(500).json({
       success: false,
-      message: 'Error fetching products',
+      message: "Error fetching products",
       error: error.message,
     });
   }
 };
 
-
+/**
+ * Get Product By ID
+ * GET /api/product/:id
+ */
 const getProductById = async (req, res) => {
-  const { id } = req.params;
-  
   try {
-    const product = await productmodel.findById(id);   
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    const product = await productmodel.findById(id);
 
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: 'Product not found',
+        message: "Product not found",
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Product fetched successfully',
+      message: "Product fetched successfully",
       data: product,
     });
-
   } catch (error) {
-    console.error('Error fetching product by ID:', error);
+    console.error("Error fetching product by ID:", error);
     return res.status(500).json({
       success: false,
-      message: 'Error fetching product',
+      message: "Error fetching product",
       error: error.message,
     });
   }
-}
+};
 
+/**
+ * Update Product
+ * PATCH /api/product/:id
+ */
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const { role, id: userId } = req.user;
 
-    // Validate ObjectId format (should be 404 for invalid format, not 400)
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(404).json({
         success: false,
-        message: 'Product not found',
+        message: "Product not found",
       });
     }
 
-    // Debug: Log incoming request body
-    console.log('PATCH request body:', req.body);
-    console.log('PATCH request body keys:', Object.keys(req.body));
-
-    // Check if body has any update fields
     if (!req.body || Object.keys(req.body).length === 0) {
-      console.log('Empty body detected');
       return res.status(400).json({
         success: false,
-        message: 'No fields to update',
+        message: "No fields to update",
       });
     }
 
-    // Find product
     const product = await productmodel.findById(id);
 
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: 'Product not found',
+        message: "Product not found",
       });
     }
 
-    // Authorization: seller can only update their own products, admin can update any
-    if (role === 'seller' && product.seller.toString() !== userId) {
+    if (role === "seller" && product.seller.toString() !== userId) {
       return res.status(403).json({
         success: false,
-        message: 'Unauthorized to update this product',
+        message: "Unauthorized to update this product",
       });
     }
 
-    // Prevent updating protected fields
     if (req.body._id || req.body.seller) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot update protected fields',
+        message: "Cannot update protected fields",
       });
     }
 
-    // Allowed fields for update
-    const allowedFields = [
-      'title',
-      'description',
-      'price',
-      'price.amount',
-      'price.currency',
-      'stock',
-      'category',
-    ];
+    if (req.body.title !== undefined) {
+      if (!req.body.title || req.body.title.trim() === "") {
+        return res.status(400).json({
+          success: false,
+          message: "Title cannot be empty",
+        });
+      }
 
-    // Validate and update fields
-    for (const key of Object.keys(req.body)) {
-      if (allowedFields.includes(key)) {
-        const value = req.body[key];
+      product.title = req.body.title.trim();
+    }
 
-        if (key === 'title') {
-          // Validate title is not empty
-          if (!value || (typeof value === 'string' && value.trim() === '')) {
-            return res.status(400).json({
-              success: false,
-              message: 'Title cannot be empty',
-            });
-          }
-          product.title = value.toString().trim();
-        } else if (key === 'description') {
-          product.description = value.toString();
-        } else if (key === 'price' && typeof value === 'object') {
-          // Handle nested price object
-          if (value.amount !== undefined) {
-            const amount = Number(value.amount);
-            if (isNaN(amount)) {
-              return res.status(400).json({
-                success: false,
-                message: 'Price amount must be a valid number',
-              });
-            }
-            if (amount < 0) {
-              return res.status(400).json({
-                success: false,
-                message: 'Price cannot be negative',
-              });
-            }
-            product.price.amount = amount;
-          }
-          if (value.currency !== undefined) {
-            const validCurrencies = ['USD', 'INR', 'EUR', 'GBP', 'JPY'];
-            if (!validCurrencies.includes(value.currency.toUpperCase())) {
-              return res.status(400).json({
-                success: false,
-                message: 'Invalid currency. Must be one of: USD, INR, EUR, GBP, JPY',
-              });
-            }
-            product.price.currency = value.currency.toUpperCase();
-          }
-        } else if (key === 'price.amount') {
-          // Handle flat price.amount field from form-data
-          const amount = Number(value);
-          if (isNaN(amount)) {
-            return res.status(400).json({
-              success: false,
-              message: 'Price amount must be a valid number',
-            });
-          }
-          if (amount < 0) {
-            return res.status(400).json({
-              success: false,
-              message: 'Price cannot be negative',
-            });
-          }
-          product.price.amount = amount;
-        } else if (key === 'price.currency') {
-          // Handle flat price.currency field from form-data
-          const validCurrencies = ['USD', 'INR', 'EUR', 'GBP', 'JPY'];
-          if (!validCurrencies.includes(value.toString().toUpperCase())) {
-            return res.status(400).json({
-              success: false,
-              message: 'Invalid currency. Must be one of: USD, INR, EUR, GBP, JPY',
-            });
-          }
-          product.price.currency = value.toString().toUpperCase();
-        } else if (key === 'stock') {
-          const stock = Number(value);
-          if (isNaN(stock) || stock < 0) {
-            return res.status(400).json({
-              success: false,
-              message: 'Stock must be a non-negative number',
-            });
-          }
-          product.stock = stock;
-        } else if (key === 'category') {
-          product.category = value.toString();
-        }
+    if (req.body.description !== undefined) {
+      product.description = req.body.description.toString();
+    }
+
+    if (
+      req.body["price.amount"] !== undefined ||
+      req.body?.price?.amount !== undefined
+    ) {
+      const amount = Number(
+        req.body["price.amount"] || req.body?.price?.amount
+      );
+
+      if (isNaN(amount) || amount < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Price amount must be a non-negative number",
+        });
+      }
+
+      product.price.amount = amount;
+    }
+
+    if (
+      req.body["price.currency"] !== undefined ||
+      req.body?.price?.currency !== undefined
+    ) {
+      const currency = (
+        req.body["price.currency"] || req.body?.price?.currency
+      )
+        .toString()
+        .toUpperCase();
+
+      const validCurrencies = ["USD", "INR"];
+
+      if (!validCurrencies.includes(currency)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid currency. Must be USD or INR",
+        });
+      }
+
+      product.price.currency = currency;
+    }
+
+    if (req.body.stock !== undefined) {
+      const stock = Number(req.body.stock);
+
+      if (isNaN(stock) || stock < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Stock must be a non-negative number",
+        });
+      }
+
+      product.stock = stock;
+    }
+
+    if (req.body.category !== undefined) {
+      product.category = req.body.category.toString().trim();
+    }
+
+    if (req.body.brand !== undefined) {
+      product.brand = req.body.brand.toString().trim();
+    }
+
+    if (req.body.tags !== undefined) {
+      product.tags = parseTags(req.body.tags);
+    }
+
+    if (req.files && req.files.length > 0) {
+      try {
+        const uploadedImages = await Promise.all(
+          req.files.map((file) =>
+            uploadToImageKit(file.buffer, file.originalname)
+          )
+        );
+
+        product.images = uploadedImages;
+      } catch (uploadError) {
+        return res.status(500).json({
+          success: false,
+          message: "Error uploading images",
+          error: uploadError.message,
+        });
       }
     }
 
-    // Save updated product
     const updatedProduct = await product.save();
 
-    // Emit product.updated event for real-time updates
-    // This would typically emit to a message queue or event emitter
-    if (global.eventEmitter) {
-      global.eventEmitter.emit('product.updated', {
-        productId: updatedProduct._id,
-        title: updatedProduct.title,
-        description: updatedProduct.description,
-        price: updatedProduct.price,
-        seller: updatedProduct.seller,
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    // Invalidate cache (would typically clear Redis keys)
-    if (global.cacheDelete) {
-      // Invalidate product-specific cache
-      await global.cacheDelete(`product:${id}`);
-      // Invalidate all products list cache
-      await global.cacheDelete('products:list:*');
-    }
+    publishToQueue("PRODUCT_SELLER_DASHBOARD.product.updated", updatedProduct);
 
     return res.status(200).json({
       success: true,
-      message: 'Product updated successfully',
+      message: "Product updated successfully",
       data: updatedProduct,
     });
   } catch (error) {
-    console.error('Error updating product:', error);
+    console.error("Error updating product:", error);
     return res.status(500).json({
       success: false,
-      message: 'Error updating product',
+      message: "Error updating product",
       error: error.message,
     });
   }
 };
 
+/**
+ * Delete Product
+ * DELETE /api/product/:id
+ */
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const { role, id: userId } = req.user;
 
-    // Validate ObjectId format (should be 404 for invalid format, not 400)
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(404).json({
         success: false,
-        message: 'Product not found',
+        message: "Product not found",
       });
     }
 
-    // Find product
     const product = await productmodel.findById(id);
 
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: 'Product not found',
+        message: "Product not found",
       });
     }
 
-    // Authorization: seller can only delete their own products, admin can delete any
-    if (role === 'seller' && product.seller.toString() !== userId) {
+    if (role === "seller" && product.seller.toString() !== userId) {
       return res.status(403).json({
         success: false,
-        message: 'Unauthorized to delete this product',
+        message: "Unauthorized to delete this product",
       });
     }
 
-    // Determine deletion type based on orders
-    let deletionType = 'hard';
-    let returnData = product;
-    
-    if (product.orders && product.orders.length > 0) {
-      // Soft delete: set status to archived
-      deletionType = 'soft';
-      product.status = 'archived';
-      returnData = await product.save();
-    } else {
-      // Hard delete: remove from database
-      await productmodel.deleteOne({ _id: id });
-    }
+    await productmodel.deleteOne({ _id: id });
 
-    // Emit product.deleted event for real-time updates
-    if (global.eventEmitter) {
-      global.eventEmitter.emit('product.deleted', {
-        productId: product._id,
-        seller: product.seller,
-        deletionType: deletionType,
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    // Invalidate cache (would typically clear Redis keys)
-    if (global.cacheDelete) {
-      // Invalidate product-specific cache
-      await global.cacheDelete(`product:${id}`);
-      // Invalidate all products list cache
-      await global.cacheDelete('products:list:*');
-    }
+    publishToQueue("PRODUCT_SELLER_DASHBOARD.product.deleted", {
+      productId: product._id,
+      seller: product.seller,
+      timestamp: new Date().toISOString(),
+    });
 
     return res.status(200).json({
       success: true,
-      message: 'Product deleted successfully',
+      message: "Product deleted successfully",
       data: {
-        ...returnData.toObject ? returnData.toObject() : returnData,
         productId: product._id,
         seller: product.seller,
-        deletionType: deletionType,
       },
     });
   } catch (error) {
-    console.error('Error deleting product:', error);
+    console.error("Error deleting product:", error);
     return res.status(500).json({
       success: false,
-      message: 'Error deleting product',
+      message: "Error deleting product",
       error: error.message,
     });
   }
 };
 
-
+/**
+ * Get Products By Seller
+ * GET /api/product/seller
+ */
 const getProductsBySeller = async (req, res) => {
   try {
     const sellerId = req.user.id;
-    const { q, minprice, maxprice, skip = 0, limit = 20 } = req.query;
 
-    // Build filter with seller ID
+    const {
+      q,
+      minprice,
+      maxprice,
+      category,
+      brand,
+      tag,
+      skip = 0,
+      limit = 20,
+    } = req.query;
+
     const filter = { seller: sellerId };
 
-    // Add search filter if provided
     if (q) {
       filter.$text = { $search: q };
     }
 
-    // Add price range filters if provided
+    if (category) {
+      filter.category = category;
+    }
+
+    if (brand) {
+      filter.brand = brand;
+    }
+
+    if (tag) {
+      filter.tags = tag.toString().toLowerCase();
+    }
+
     if (minprice) {
-      filter['price.amount'] = {
-        ...filter['price.amount'],
+      filter["price.amount"] = {
+        ...filter["price.amount"],
         $gte: Number(minprice),
       };
     }
 
     if (maxprice) {
-      filter['price.amount'] = {
-        ...filter['price.amount'],
+      filter["price.amount"] = {
+        ...filter["price.amount"],
         $lte: Number(maxprice),
       };
     }
 
-    // Fetch products with pagination
     const products = await productmodel
       .find(filter)
       .skip(Number(skip))
@@ -461,14 +531,14 @@ const getProductsBySeller = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Products fetched successfully',
+      message: "Products fetched successfully",
       data: products,
     });
   } catch (error) {
-    console.error('Error fetching seller products:', error);
+    console.error("Error fetching seller products:", error);
     return res.status(500).json({
       success: false,
-      message: 'Error fetching products',
+      message: "Error fetching products",
       error: error.message,
     });
   }

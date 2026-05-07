@@ -48,7 +48,7 @@ const registerUserValidation=[
 
     body('role')
     .optional()
-    .isIn(['user', 'seller'])
+    .isIn(['user'])
     .withMessage("Invalid role"),
 
     body('address.addressLine')
@@ -120,7 +120,7 @@ const registerSellerValidation=[
 
     body('role')
     .optional()
-    .isIn(['user', 'seller'])
+    .isIn(['seller'])
     .withMessage("Invalid role"),
 
     respondWithValidationErrors

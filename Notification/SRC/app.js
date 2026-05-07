@@ -13,6 +13,9 @@ connect().then(()=>{
 })
 
 
+app.get("/",(req,res)=>{
+    res.status(200).json({message:"Notification API is running"});
+});
 
 app.get('/',(req,res)=>{
     res.send("Notification Service is running");

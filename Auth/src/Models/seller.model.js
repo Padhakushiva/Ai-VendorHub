@@ -30,8 +30,7 @@ const SellerSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ['user','seller'],
-        default: 'user'
-        
+        default: 'seller'
     }
 });
 

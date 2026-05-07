@@ -16,6 +16,16 @@ jest.mock('../DB/redis', () => {
     return mockRedis;
 });
 
+// Mock RabbitMQ Broker for testing - don't connect to RabbitMQ
+jest.mock('../Broker/broker', () => {
+    const mockBroker = {
+        connect: jest.fn().mockResolvedValue(null),
+        publishToQueue: jest.fn().mockResolvedValue(null),
+        SubscribeToQueue: jest.fn().mockResolvedValue(null),
+    };
+    return mockBroker;
+});
+
 let mongoServer;
 
 /**

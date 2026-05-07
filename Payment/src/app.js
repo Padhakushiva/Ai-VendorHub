@@ -19,6 +19,10 @@ app.use(express.json());
 app.use(cookieParser());
 
 
+router.get("/",(req,res)=>{
+    res.status(200).json({message:"Payment API is running"});
+});
+
 app.use('/api/payment',Paymentroutes);
 
 

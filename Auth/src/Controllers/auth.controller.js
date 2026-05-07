@@ -96,8 +96,7 @@ async function registeruser(req, res) {
 
 //REGISTER SELLER
 
-async function registerSeller
-(req, res) {
+async function registerSeller(req, res) {
   const { username, email, password, fullName, role } = req.body;
 
   const isSellerAlreadyExist = await sellerModel.findOne({
@@ -118,12 +117,9 @@ async function registerSeller
     fullName: {
       firstName: fullName.firstName,
       lastName: fullName.lastName,
-    }
+    },
+    role: "seller",
   };
-
-  if (role) {
-    sellerData.role = role;
-  }
 
   const seller = await sellerModel.create(sellerData);
 
@@ -392,7 +388,7 @@ async function loginSeller(req, res) {
 
       message: "Login successful",
 
-      user: {
+      seller: {
         id: seller._id,
 
         username: seller.username,
@@ -418,34 +414,42 @@ async function loginSeller(req, res) {
 // GET CURRENT USER
 async function getCurrentUser(req, res) {
   try {
-    const userId = req.user.id;
+    const accountId = req.user.id;
+    const isSeller = req.user.role === "seller";
 
-    // Fetch full user from database
-    const user = await userModel.findById(userId);
+    // Fetch full account from database
+    const account = isSeller
+      ? await sellerModel.findById(accountId)
+      : await userModel.findById(accountId);
 
-    if (!user) {
+    if (!account) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: "Account not found",
       });
+    }
+
+    const accountPayload = {
+      id: account._id,
+      username: account.username,
+      email: account.email,
+      fullName: account.fullName,
+      role: account.role,
+    };
+
+    if (!isSeller) {
+      accountPayload.addresses = account.addresses || [];
     }
 
     return res.status(200).json({
       success: true,
-      message: "Current user fetched successfully",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        fullName: user.fullName,
-        addresses: user.addresses || [],
-        role: user.role,
-      },
+      message: "Current account fetched successfully",
+      [isSeller ? "seller" : "user"]: accountPayload,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Error fetching user",
+      message: "Error fetching account",
     });
   }
 }
@@ -487,6 +491,14 @@ async function   logoutUser(req, res) {
 // GET USER ADDRESSES
 async function getUserAddresses(req, res) {
   try {
+    // Check if user is a seller (sellers don't have addresses)
+    if (req.user.role === "seller") {
+      return res.status(403).json({
+        success: false,
+        message: "Sellers cannot access address endpoints",
+      });
+    }
+
     const userId = req.user.id;
 
     const user = await userModel.findById(userId);
@@ -514,6 +526,14 @@ async function getUserAddresses(req, res) {
 // ADD ADDRESS
 async function addAddress(req, res) {
   try {
+    // Check if user is a seller (sellers don't have addresses)
+    if (req.user.role === "seller") {
+      return res.status(403).json({
+        success: false,
+        message: "Sellers cannot access address endpoints",
+      });
+    }
+
     const { addressLine, city, state, pincode, phone } = req.body;
 
     // Validate required fields
@@ -584,6 +604,14 @@ async function addAddress(req, res) {
 // DELETE ADDRESS
 async function deleteAddress(req, res) {
   try {
+    // Check if user is a seller (sellers don't have addresses)
+    if (req.user.role === "seller") {
+      return res.status(403).json({
+        success: false,
+        message: "Sellers cannot access address endpoints",
+      });
+    }
+
     const { addressId } = req.params;
     const userId = req.user.id;
 
