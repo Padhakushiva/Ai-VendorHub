@@ -1,418 +1,329 @@
 {
   "info": {
-    "name": "AI VendorHub — Complete AI Features",
-    "description": "Complete Postman collection for all AI service endpoints including Smart Search, Conversational Shopping, Similar Products, Product Comparison, Smart Budget, and Mood Shopping.",
-    "_postman_id": "ai-vendorhub-v3",
+    "name": "AI Service - Marketplace",
+    "description": "Complete collection for AI Service endpoints",
+    "version": "2.0.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "variable": [
-    { "key": "baseUrl", "value": "http://localhost:3005", "type": "string" },
-    { "key": "authToken", "value": "YOUR_JWT_TOKEN_HERE", "type": "string" },
-    { "key": "productId1", "value": "PRODUCT_ID_1_HERE", "type": "string" },
-    { "key": "productId2", "value": "PRODUCT_ID_2_HERE", "type": "string" }
-  ],
   "item": [
     {
-      "name": "🏥 Health & Monitoring",
+      "name": "Health & Info",
       "item": [
         {
-          "name": "GET / — Service Info",
+          "name": "Health Check",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/",
-            "description": "Service version, all features, and all available endpoints."
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
           }
         },
         {
-          "name": "GET /health — Health Check",
+          "name": "Service Info",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/health",
-            "description": "Returns service status, uptime, feature flags, and LLM metrics."
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "Search Intent (Natural Language Search)",
+      "item": [
         {
-          "name": "GET /ai/metrics — Detailed LLM Metrics",
-          "request": {
-            "method": "GET",
-            "url": "{{baseUrl}}/ai/metrics",
-            "description": "Per-endpoint LLM call stats: success rate, avg latency, failures, timeouts."
-          }
-        },
-        {
-          "name": "POST /ai/feature-flags — Toggle LLM Features",
+          "name": "Search - Shoes Under 2000",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/ai/feature-flags",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"flag\": \"LLM_ENABLED\",\n  \"enabled\": false\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"query\": \"show me shoes under 2000 for college\"\n}"
             },
-            "description": "Toggle any LLM feature on/off at runtime. Flags: LLM_ENABLED, LLM_SEARCH_INTENT, LLM_DESCRIPTION_GENERATOR, LLM_CATEGORY_SUGGESTION, LLM_REVIEW_SUMMARY, LLM_AGENT_TOOLS"
+            "url": {
+              "raw": "{{base_url}}/ai/search-intent",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "search-intent"]
+            }
           }
-        }
-      ]
-    },
-    {
-      "name": "🔍 1. AI Smart Search",
-      "item": [
+        },
         {
-          "name": "POST /ai/search-intent — Gaming under ₹2000",
+          "name": "Search - Gaming Laptop",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/ai/search-intent",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"gaming product under 2000\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"query\": \"best gaming laptop under 80000 with RTX GPU\"\n}"
             },
-            "description": "AI extracts keyword='gaming', maxPrice=2000. Then uses MongoDB $text search on title + description."
-          }
-        },
-        {
-          "name": "POST /ai/search-intent — Cheap Headphones",
-          "request": {
-            "method": "POST",
-            "url": "{{baseUrl}}/ai/search-intent",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"query\": \"cheap headphones\"\n}",
-              "options": { "raw": { "language": "json" } }
+            "url": {
+              "raw": "{{base_url}}/ai/search-intent",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "search-intent"]
             }
           }
         },
         {
-          "name": "POST /ai/search-intent — Study Setup Products",
+          "name": "Search - Budget Smartphone",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/ai/search-intent",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"products for study setup\"\n}",
-              "options": { "raw": { "language": "json" } }
-            }
-          }
-        },
-        {
-          "name": "POST /ai/search-intent — iPhone between 50k-100k latest",
-          "request": {
-            "method": "POST",
-            "url": "{{baseUrl}}/ai/search-intent",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"query\": \"iphone between 50000 and 100000 latest\"\n}",
-              "options": { "raw": { "language": "json" } }
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "💬 2. Conversational Shopping Assistant",
-      "item": [
-        {
-          "name": "POST /ai/chat — Suggest for coding",
-          "request": {
-            "method": "POST",
-            "url": "{{baseUrl}}/ai/chat",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"message\": \"Suggest products for coding\",\n  \"sessionId\": \"user-session-001\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"query\": \"affordable smartphones with good camera under 20000\"\n}"
             },
-            "description": "Conversational UX. AI understands intent, searches products, and replies naturally."
-          }
-        },
-        {
-          "name": "POST /ai/chat — Best products under ₹1000",
-          "request": {
-            "method": "POST",
-            "url": "{{baseUrl}}/ai/chat",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"message\": \"Best products under 1000\"\n}",
-              "options": { "raw": { "language": "json" } }
+            "url": {
+              "raw": "{{base_url}}/ai/search-intent",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "search-intent"]
             }
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "Generate Description",
+      "item": [
         {
-          "name": "POST /ai/chat — Off-topic (gets politely declined)",
+          "name": "Generate - Nike Running Shoes",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/ai/chat",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": \"What is the capital of India?\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"title\": \"Nike Air Max Running Shoes\",\n  \"category\": \"Footwear\",\n  \"basicDescription\": \"Comfortable running shoes with air cushioning technology\",\n  \"price\": 5999\n}"
             },
-            "description": "Non-shopping queries get a polite redirect to shopping."
+            "url": {
+              "raw": "{{base_url}}/ai/generate-description",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "generate-description"]
+            }
           }
-        }
-      ]
-    },
-    {
-      "name": "🔁 3. Similar Product Recommendation",
-      "item": [
+        },
         {
-          "name": "GET /ai/similar/:productId — You May Also Like",
-          "request": {
-            "method": "GET",
-            "url": "{{baseUrl}}/ai/similar/{{productId1}}",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
-            ],
-            "description": "Replaces productId1 variable with actual product ID. AI extracts keywords from title/description, finds similar products, ranks by price similarity."
-          }
-        }
-      ]
-    },
-    {
-      "name": "⚖️ 4. AI Product Comparison",
-      "item": [
-        {
-          "name": "POST /ai/compare — Compare 2 Products",
+          "name": "Generate - Sony Headphones",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/ai/compare",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"productIds\": [\n    \"{{productId1}}\",\n    \"{{productId2}}\"\n  ]\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"title\": \"Sony WF-C700N Wireless Earbuds\",\n  \"category\": \"Electronics\",\n  \"basicDescription\": \"Noise cancelling wireless earbuds\",\n  \"price\": 8999\n}"
             },
-            "description": "Compares price, availability, description. AI analysis tells which is cheaper, better value, and gives recommendation."
+            "url": {
+              "raw": "{{base_url}}/ai/generate-description",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "generate-description"]
+            }
           }
         },
         {
-          "name": "POST /ai/compare — Compare 3 Products",
+          "name": "Generate - iPhone Case",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/ai/compare",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"productIds\": [\n    \"PRODUCT_ID_1\",\n    \"PRODUCT_ID_2\",\n    \"PRODUCT_ID_3\"\n  ]\n}",
-              "options": { "raw": { "language": "json" } }
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "💰 5. Smart Budget Shopping (UNIQUE!)",
-      "item": [
-        {
-          "name": "POST /ai/smart-budget — Gaming Setup ₹5000",
-          "request": {
-            "method": "POST",
-            "url": "{{baseUrl}}/ai/smart-budget",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"budget\": 5000,\n  \"purpose\": \"gaming setup\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"title\": \"Premium iPhone 15 Pro Max Leather Case\",\n  \"category\": \"Mobile Accessories\",\n  \"basicDescription\": \"Genuine leather protective case\",\n  \"price\": 1499\n}"
             },
-            "description": "AI breaks budget into multiple products. E.g. Mouse ₹1000 + Keyboard ₹2000 + Headphones ₹1800 = ₹4800 (saved ₹200)"
-          }
-        },
-        {
-          "name": "POST /ai/smart-budget — Study Desk ₹3000",
-          "request": {
-            "method": "POST",
-            "url": "{{baseUrl}}/ai/smart-budget",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"budget\": 3000,\n  \"purpose\": \"study desk setup\"\n}",
-              "options": { "raw": { "language": "json" } }
-            }
-          }
-        },
-        {
-          "name": "POST /ai/smart-budget — Office Setup ₹10000",
-          "request": {
-            "method": "POST",
-            "url": "{{baseUrl}}/ai/smart-budget",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"budget\": 10000,\n  \"purpose\": \"home office setup\"\n}",
-              "options": { "raw": { "language": "json" } }
+            "url": {
+              "raw": "{{base_url}}/ai/generate-description",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "generate-description"]
             }
           }
         }
       ]
     },
     {
-      "name": "🎨 6. Mood/Intent Based Shopping",
+      "name": "Suggest Categories & Tags",
       "item": [
         {
-          "name": "POST /ai/mood-shopping — Minimal Desk Setup",
+          "name": "Suggest - Wireless Headphones",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/ai/mood-shopping",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"mood\": \"minimal desk setup\",\n  \"maxBudget\": 5000\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"title\": \"Sony Wireless Headphones\",\n  \"description\": \"Premium noise-cancelling wireless headphones with 30-hour battery life and superior sound quality\"\n}"
             },
-            "description": "AI maps mood/vibe to product keywords. Very modern UX."
-          }
-        },
-        {
-          "name": "POST /ai/mood-shopping — Aesthetic Products",
-          "request": {
-            "method": "POST",
-            "url": "{{baseUrl}}/ai/mood-shopping",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"mood\": \"aesthetic products\"\n}",
-              "options": { "raw": { "language": "json" } }
+            "url": {
+              "raw": "{{base_url}}/ai/suggest-category-tags",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "suggest-category-tags"]
             }
           }
         },
         {
-          "name": "POST /ai/mood-shopping — Cozy Room Items",
+          "name": "Suggest - Running Shoes",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/ai/mood-shopping",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"mood\": \"cozy room items\",\n  \"maxBudget\": 2000\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"title\": \"Nike Revolution 7 Running Shoes\",\n  \"description\": \"Lightweight comfortable running shoes with responsive cushioning for daily jogging and gym workouts\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai/suggest-category-tags",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "suggest-category-tags"]
             }
           }
         },
         {
-          "name": "POST /ai/mood-shopping — Gaming Aesthetic",
+          "name": "Suggest - Kitchen Blender",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/ai/mood-shopping",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"mood\": \"gaming aesthetic dark setup\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"title\": \"Powerful 1500W Kitchen Blender\",\n  \"description\": \"High-speed blender with multiple preset functions for smoothies, soups, and ice crushing\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai/suggest-category-tags",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "suggest-category-tags"]
             }
           }
         }
       ]
     },
     {
-      "name": "📝 7. Product Description Generator",
+      "name": "Review Summary",
       "item": [
         {
-          "name": "POST /ai/generate-description",
+          "name": "Summarize Reviews - Product 1",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/ai/generate-description",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Nike Air Max Running Shoes\",\n  \"category\": \"Footwear\",\n  \"basicDescription\": \"Comfortable running shoes with air cushioning\",\n  \"price\": 5999\n}",
-              "options": { "raw": { "language": "json" } }
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "🏷️ 8. Category & Tag Suggestion",
-      "item": [
-        {
-          "name": "POST /ai/suggest-category-tags",
-          "request": {
-            "method": "POST",
-            "url": "{{baseUrl}}/ai/suggest-category-tags",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Sony WH-1000XM5 Wireless Headphones\",\n  \"description\": \"Premium noise-cancelling wireless headphones with 30-hour battery\"\n}",
-              "options": { "raw": { "language": "json" } }
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "⭐ 9. Review Summary",
-      "item": [
-        {
-          "name": "POST /ai/review-summary/:productId",
-          "request": {
-            "method": "POST",
-            "url": "{{baseUrl}}/ai/review-summary/{{productId1}}",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{}",
-              "options": { "raw": { "language": "json" } }
+            "url": {
+              "raw": "{{base_url}}/ai/review-summary/507f1f77bcf86cd799439011",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "review-summary", "507f1f77bcf86cd799439011"]
+            }
+          }
+        },
+        {
+          "name": "Summarize Reviews - Product 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ai/review-summary/507f1f77bcf86cd799439012",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "review-summary", "507f1f77bcf86cd799439012"]
             }
           }
         }
       ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3005"
+    },
+    {
+      "key": "auth_token",
+      "value": "your_jwt_token_here",
+      "type": "string"
     }
   ]
 }

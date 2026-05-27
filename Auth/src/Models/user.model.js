@@ -62,6 +62,36 @@ const UserSchema = new mongoose.Schema({
 
         select: false  // Password won't be returned by default, but we can explicitly select it
     },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    authProvider: {
+        type: String,
+        enum: ['local', 'google'],
+        default: 'local'
+    },
+    emailVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationToken: {
+        type: String,
+        select: false
+    },
+    emailVerificationExpires: {
+        type: Date,
+        select: false
+    },
+    passwordResetToken: {
+        type: String,
+        select: false
+    },
+    passwordResetExpires: {
+        type: Date,
+        select: false
+    },
     fullName: {
         firstName: {
             type: String,
@@ -79,6 +109,8 @@ const UserSchema = new mongoose.Schema({
         
     },
     addresses: [addressSchema]
+}, {
+    timestamps: true
 });
 
 const userModel = mongoose.models.User || mongoose.model('User', UserSchema);

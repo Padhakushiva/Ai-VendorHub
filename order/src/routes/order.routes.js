@@ -18,6 +18,10 @@ router.get("/me", createAuthMiddleware([ "user" ]), orderController.getMyOrders)
 
 router.post("/:id/cancel", createAuthMiddleware([ "user" ]), orderController.cancelOrderById)
 
+router.post("/expiry/scan", createAuthMiddleware([ "admin" ]), orderController.expirePendingOrders)
+
+router.patch("/:id/status", createAuthMiddleware([ "admin", "seller" ]), orderController.updateOrderStatus)
+
 // PATCH / Update Address - apply transform middleware BEFORE validation
 router.patch("/:id/address", 
     createAuthMiddleware([ "user" ]), 

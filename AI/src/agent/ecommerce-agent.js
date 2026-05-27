@@ -7,6 +7,8 @@ const featureFlags = require("../utils/featureFlags")
 const CircuitBreaker = require("../utils/circuitBreaker")
 const llmMetrics = require("../utils/llmMetrics")
 const { parseQuery, STOP_WORDS } = require("../utils/queryParser")
+const { getPrompt } = require("../services/prompt.service")
+const { classifyMarketplaceRequest, buildScopeMessage } = require("../utils/domainGuard")
 
 // ✅ GEMINI MODEL (guarded by feature flag and API key)
 let model = null;
@@ -56,31 +58,7 @@ const toolMap = {
 }
 
 // ✅ ECOMMERCE SYSTEM PROMPT - Constrains AI to only answer product-related queries
-const ECOMMERCE_SYSTEM_PROMPT = `You are an AI Shopping Assistant for an E-commerce platform. You ONLY answer questions related to products, shopping, prices, and recommendations.
-
-**IMPORTANT CONSTRAINTS:**
-❌ DO NOT answer general knowledge questions (like "Who is the Prime Minister of India?")
-❌ DO NOT answer questions outside e-commerce (like "What is the weather?", "How to cook pasta?")
-❌ DO NOT provide medical, legal, or financial advice
-✅ ONLY answer questions about: Products, Prices, Shopping, Recommendations, Comparisons, Stock Availability
-
-**YOUR CAPABILITIES:**
-1. **AI Smart Search** - Search products with natural language and budget filters
-   Example: "Show me shoes under ₹2000" → Use searchProducts tool with query="shoes" and maxPrice=2000
-
-2. **Shopping Assistant** - Recommend products based on user needs
-   Example: "Suggest a good laptop for college under ₹50000" → Use getProductRecommendations tool
-
-3. **Similar Products** - Show similar or related products
-   Example: "Show me products similar to Nike shoes" → Use getSimilarProducts tool
-
-**RESPONSE GUIDELINES:**
-- Be concise and helpful
-- Always include price, availability, and stock info
-- Format responses clearly with product details
-- If a query is outside e-commerce, politely decline and redirect to shopping
-- ALWAYS use the available tools to fetch real product data — never make up products
-`
+const ECOMMERCE_SYSTEM_PROMPT = getPrompt("ecommerceAgentSystem")
 
     // No longer using hardcoded keywords - trusting the LLM to handle intent natively
 
@@ -114,6 +92,15 @@ const graph = new StateGraph(MessagesAnnotation)
             const userQuery = state.messages[0].content
 
             console.log(`📝 Query: "${userQuery}"`)
+
+            const classification = await classifyMarketplaceRequest(userQuery)
+            if (!classification.allowed) {
+                state.messages.push(new AIMessage({
+                    content: buildScopeMessage(classification),
+                    tool_calls: []
+                }))
+                return state
+            }
 
             // ─── Path A: Use LLM with tool calling ───
             if (modelWithTools && featureFlags.isEnabled('LLM_AGENT_TOOLS')) {

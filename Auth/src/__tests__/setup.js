@@ -4,16 +4,42 @@ process.env.JWT_SECRET = 'test-secret-key';
 
 // Mock Redis for testing - don't connect to production Redis
 jest.mock('../DB/redis', () => {
+    const store = new Map();
     const mockRedis = {
-        set: jest.fn().mockResolvedValue('OK'),
-        get: jest.fn().mockResolvedValue(null),
-        del: jest.fn().mockResolvedValue(0),
-        exists: jest.fn().mockResolvedValue(0),
+        set: jest.fn(),
+        get: jest.fn(),
+        del: jest.fn(),
+        exists: jest.fn(),
         on: jest.fn(),
         connect: jest.fn(),
         disconnect: jest.fn(),
+        __clear: () => store.clear(),
+        __resetImplementations: () => {
+            mockRedis.set.mockImplementation((key, value) => {
+                store.set(key, value);
+                return Promise.resolve('OK');
+            });
+            mockRedis.get.mockImplementation((key) => Promise.resolve(store.get(key) || null));
+            mockRedis.del.mockImplementation((key) => {
+                const existed = store.delete(key);
+                return Promise.resolve(existed ? 1 : 0);
+            });
+            mockRedis.exists.mockImplementation((key) => Promise.resolve(store.has(key) ? 1 : 0));
+            mockRedis.on.mockImplementation(() => {});
+            mockRedis.connect.mockImplementation(() => Promise.resolve());
+            mockRedis.disconnect.mockImplementation(() => {});
+        },
     };
+
+    mockRedis.__resetImplementations();
     return mockRedis;
+});
+
+beforeEach(() => {
+    const redis = require('../DB/redis');
+    if (redis.__resetImplementations) {
+        redis.__resetImplementations();
+    }
 });
 
 // Mock RabbitMQ Broker for testing - don't connect to RabbitMQ
@@ -70,5 +96,9 @@ module.exports.closeDatabase = async () => {
 module.exports.clearDatabase = async () => {
     if (mongoose.connection.readyState === 1) {
         await mongoose.connection.dropDatabase();
+    }
+    const redis = require('../DB/redis');
+    if (redis.__clear) {
+        redis.__clear();
     }
 };

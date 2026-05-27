@@ -45,6 +45,8 @@ describe('POST /api/orders/:id/cancel — Buyer-initiated cancel while rules app
 
         const orderResponse = res.body.order || res.body.data || res.body;
         expect(orderResponse.status).toMatch(/CANCELLED|CANCELED/i);
+        expect(orderResponse.inventoryReservation.status).toBe('RELEASED');
+        expect(orderResponse.timeline.some((event) => event.type === 'cancelled')).toBe(true);
 
     });
 

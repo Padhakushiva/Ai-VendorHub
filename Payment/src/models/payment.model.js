@@ -17,8 +17,18 @@ const paymentSchema = new mongoose.Schema({
     },
     status:{
         type:String,
-        enum:["pending","completed","failed"],
+        enum:["pending","completed","failed","refunded"],
         default:"pending"
+    },
+    method:{
+        type:String,
+        enum:["credit_card","debit_card","upi","paypal","cod"],
+    },
+    transactionId:{
+        type:String,
+    },
+    gatewayPayload:{
+        type:mongoose.Schema.Types.Mixed,
     },
     user:{
         type:mongoose.Schema.Types.ObjectId,

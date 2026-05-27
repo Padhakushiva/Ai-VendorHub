@@ -6,6 +6,9 @@ const retryWithBackoff = require("../utils/retryWithBackoff");
 const featureFlags = require("../utils/featureFlags");
 const llmMetrics = require("../utils/llmMetrics");
 const { parseQuery } = require("../utils/queryParser");
+const { classifyMarketplaceRequest, buildScopeMessage } = require("../utils/domainGuard");
+const { getPrompt } = require("./prompt.service");
+const { extractJsonObject } = require("../utils/json");
 
 class ConversationalShoppingService {
   constructor() {
@@ -47,6 +50,20 @@ class ConversationalShoppingService {
     try {
       console.log(`💬 Conversational Shopping: "${message}"`);
 
+      const classification = await classifyMarketplaceRequest(message);
+      if (!classification.allowed) {
+        return {
+          success: false,
+          code: classification.intent === "unclear" ? "AI_UNCLEAR_REQUEST" : "AI_SCOPE_LIMITED",
+          message,
+          intent: classification,
+          reply: buildScopeMessage(classification),
+          products: [],
+          totalFound: 0,
+          usedLLM: Boolean(this.model),
+        };
+      }
+
       const baseUrl = process.env.PRODUCT_SERVICE_URL || "http://localhost:3000";
 
       // Initialize session history
@@ -69,36 +86,10 @@ class ConversationalShoppingService {
           intent = await this.circuitBreaker.execute(async () => {
             return await retryWithBackoff(
               async () => {
-                const prompt = `You are a shopping assistant. Analyze this user message and extract shopping intent. Consider the recent chat history for context if the user refers to previous products.
-
-Recent History:
-${historyText}
-
-Current User Message: "${message}"
-
-Return ONLY valid JSON:
-{
-  "type": "search | recommend | budget | compare | info | off_topic",
-  "keywords": ["product search keywords"],
-  "maxBudget": null or number,
-  "minBudget": null or number,
-  "category": null or "category name",
-  "sortBy": "relevance | price_asc | price_desc | rating | newest"
-}
-
-Rules:
-- type "search" = user wants to find specific products
-- type "recommend" = user wants suggestions/recommendations
-- type "budget" = user has a specific budget
-- type "compare" = user wants to compare products
-- type "off_topic" = NOT shopping related
-- For off_topic, set keywords to []`;
-
-                const res = await this.model.invoke(prompt);
-                const text = res.content || "";
-                const match = text.match(/\{[\s\S]*\}/);
-                if (!match) throw new Error("No JSON");
-                return JSON.parse(match[0]);
+                const res = await this.model.invoke(getPrompt("conversationalIntent", { historyText, message }));
+                const parsed = extractJsonObject(res.content, null);
+                if (!parsed) throw new Error("No JSON");
+                return parsed;
               },
               { maxRetries: 1, baseDelayMs: 500, label: "Conversational-Intent" }
             );
@@ -234,19 +225,16 @@ Rules:
 
       if (this.model && featureFlags.isEnabled("LLM_ENABLED")) {
         try {
-          let systemPrompt = `You are "Rufus", an expert conversational shopping assistant. 
-Your goal is to guide the user, explain product features, offer personalized recommendations, and help them make purchasing decisions.
-
-Always be conversational, friendly, and helpful. Do NOT sound robotic. Do NOT use markdown headers or bolding aggressively. Keep responses concise and natural.
-If products are found, mention them naturally in your response, compare them if relevant, and answer any user questions based on the product context.
-If no products are found, suggest alternative searches or ask clarifying questions.
-
-`;
-          if (formattedProducts.length > 0) {
-            systemPrompt += `You have searched the store and found these products:\n${JSON.stringify(formattedProducts.map(p => ({ title: p.title, price: p.price?.amount, description: p.description, inStock: p.inStock })))}`;
-          } else if (intent.type !== "off_topic") {
-            systemPrompt += `You searched the store but found 0 products matching the user's intent.`;
-          }
+          const systemPrompt = getPrompt("conversationalReply", {
+            intent,
+            products: formattedProducts.map(p => ({
+              title: p.title,
+              price: p.price?.amount,
+              currency: p.price?.currency,
+              description: p.description,
+              inStock: p.inStock,
+            })),
+          });
 
           const messages = [
             new SystemMessage(systemPrompt),

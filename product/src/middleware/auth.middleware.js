@@ -2,7 +2,7 @@ const jwt=require('jsonwebtoken');
 
 function createAuthMiddleware(roles=["user"]){
     return function authMiddleware(req,res,next){
-        const token=req.cookies?.token || req.headers?.authorization?.split(" ")[1];
+        const token=req.headers?.authorization?.split(" ")[1] || req.cookies?.accessToken || req.cookies?.token;
         if(!token){
             return res.status(401).json({
                 message:"Authentication token missing"

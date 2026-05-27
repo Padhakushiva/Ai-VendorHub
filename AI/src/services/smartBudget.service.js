@@ -4,6 +4,8 @@ const CircuitBreaker = require("../utils/circuitBreaker");
 const retryWithBackoff = require("../utils/retryWithBackoff");
 const featureFlags = require("../utils/featureFlags");
 const llmMetrics = require("../utils/llmMetrics");
+const { getPrompt } = require("./prompt.service");
+const { extractJsonArray } = require("../utils/json");
 
 class SmartBudgetService {
   constructor() {
@@ -57,15 +59,10 @@ class SmartBudgetService {
           const terms = await this.circuitBreaker.execute(async () => {
             return await retryWithBackoff(
               async () => {
-                const prompt = `A user has a budget of ₹${budget} and wants: "${purpose}". 
-Suggest 4-6 product categories/types they should buy to fulfill this need.
-Return ONLY a JSON array of search keywords.
-Example: ["gaming mouse", "mechanical keyboard", "gaming headphones", "mouse pad"]`;
-                const result = await this.model.invoke(prompt);
-                const text = result.content || "";
-                const match = text.match(/\[[\s\S]*?\]/);
-                if (!match) throw new Error("No JSON array");
-                return JSON.parse(match[0]);
+                const result = await this.model.invoke(getPrompt("smartBudgetTerms", { budget, purpose }));
+                const parsed = extractJsonArray(result.content, []);
+                if (!parsed.length) throw new Error("No JSON array");
+                return parsed;
               },
               { maxRetries: 1, baseDelayMs: 500, label: "Budget-Terms" }
             );

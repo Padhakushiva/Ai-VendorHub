@@ -1,29 +1,27 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+const cors = require('cors');
 const Paymentroutes = require('./routes/routes');
 const app = express();
+const corsOptions = {
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true,
+    credentials: true,
+};
 
-// Enable CORS
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
-    } else {
-        next();
-    }
-});
-
+app.use(helmet());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
 
-router.get("/",(req,res)=>{
+app.get("/",(req,res)=>{
     res.status(200).json({message:"Payment API is running"});
 });
 
 app.use('/api/payment',Paymentroutes);
+app.use('/api/payments',Paymentroutes);
+app.use('/payments',Paymentroutes);
 
 
 

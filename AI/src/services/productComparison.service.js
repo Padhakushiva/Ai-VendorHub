@@ -4,6 +4,8 @@ const CircuitBreaker = require("../utils/circuitBreaker");
 const retryWithBackoff = require("../utils/retryWithBackoff");
 const featureFlags = require("../utils/featureFlags");
 const llmMetrics = require("../utils/llmMetrics");
+const { getPrompt } = require("./prompt.service");
+const { extractJsonObject } = require("../utils/json");
 
 class ProductComparisonService {
   constructor() {
@@ -101,24 +103,10 @@ class ProductComparisonService {
                   )
                   .join("\n");
 
-                const prompt = `You are a product comparison expert. Compare these products and provide helpful insights for a buyer.
-
-${productSummary}
-
-Return ONLY valid JSON:
-{
-  "cheapest": "Product name that is cheapest",
-  "bestValue": "Product name that offers best value for money",
-  "highlights": ["3-5 key comparison points"],
-  "recommendation": "1-2 sentence recommendation for the buyer",
-  "verdict": "Which product to buy and why (1 sentence)"
-}`;
-
-                const result = await this.model.invoke(prompt);
-                const text = result.content || "";
-                const match = text.match(/\{[\s\S]*\}/);
-                if (!match) throw new Error("No JSON in response");
-                return JSON.parse(match[0]);
+                const result = await this.model.invoke(getPrompt("comparisonAnalysis", { productSummary }));
+                const parsed = extractJsonObject(result.content, null);
+                if (!parsed) throw new Error("No JSON in response");
+                return parsed;
               },
               { maxRetries: 1, baseDelayMs: 500, label: "Comparison-LLM" }
             );

@@ -167,8 +167,84 @@ const loginUserValidation = [
     respondWithValidationErrors
 ]
 
+const updateProfileValidation = [
+    body('username')
+    .optional()
+    .isString()
+    .withMessage('Username must be a string')
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage('Username must be at least 3 characters long'),
+
+    body('email')
+    .optional()
+    .isEmail()
+    .withMessage('Invalid email format')
+    .normalizeEmail(),
+
+    body('fullName.firstName')
+    .optional()
+    .isString()
+    .withMessage('First name must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('First name cannot be empty'),
+
+    body('fullName.lastName')
+    .optional()
+    .isString()
+    .withMessage('Last name must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('Last name cannot be empty'),
+
+    (req, res, next) => {
+        const allowedFields = ['username', 'email', 'fullName'];
+        const blockedFields = Object.keys(req.body || {}).filter((field) => !allowedFields.includes(field));
+
+        if (blockedFields.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot update protected fields: ${blockedFields.join(', ')}`
+            });
+        }
+
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'At least one profile field is required'
+            });
+        }
+
+        next();
+    },
+    respondWithValidationErrors
+]
+
+const forgotPasswordValidation = [
+    body('email')
+    .isEmail()
+    .withMessage('Invalid email format')
+    .normalizeEmail()
+    .notEmpty()
+    .withMessage('Email is required'),
+    respondWithValidationErrors
+]
+
+const resetPasswordValidation = [
+    body('password')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters long')
+    .notEmpty()
+    .withMessage('Password is required'),
+    respondWithValidationErrors
+]
+
 module.exports={
     registerUserValidation,
     loginUserValidation,
-    registerSellerValidation
+    registerSellerValidation,
+    updateProfileValidation,
+    forgotPasswordValidation,
+    resetPasswordValidation
 }

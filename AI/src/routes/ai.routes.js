@@ -1,53 +1,53 @@
 const express = require('express');
 const router = express.Router();
 
-// ── Existing controllers ────────────────────────────────────────────────────
 const searchIntentController = require('../controllers/searchIntent.controller');
 const descriptionGenerator = require('../controllers/description.controller');
 const categoryTagSuggestion = require('../controllers/categoryTag.controller');
 const reviewSummary = require('../controllers/reviewSummary.controller');
+const conversationalShopping = require('../controllers/conversationalShopping.controller');
+const similarProduct = require('../controllers/similarProduct.controller');
+const productComparison = require('../controllers/productComparison.controller');
+const smartBudget = require('../controllers/smartBudget.controller');
+const moodShopping = require('../controllers/moodShopping.controller');
+const systemController = require('../controllers/system.controller');
+const productPageAI = require('../controllers/productPageAI.controller');
+const { requireAuth } = require('../middleware/auth.middleware');
 
-// ── New feature controllers ─────────────────────────────────────────────────
-const similarProductController = require('../controllers/similarProduct.controller');
-const productComparisonController = require('../controllers/productComparison.controller');
-const smartBudgetController = require('../controllers/smartBudget.controller');
-const moodShoppingController = require('../controllers/moodShopping.controller');
-const conversationalShoppingController = require('../controllers/conversationalShopping.controller');
+// AI Service observability and runtime controls
+router.get('/metrics', systemController.getMetrics);
+router.get('/feature-flags', systemController.getFeatureFlags);
+router.post('/feature-flags', systemController.updateFeatureFlags);
+router.get('/scope', systemController.getScope);
 
-// ── EXISTING ROUTES ─────────────────────────────────────────────────────────
+// AI Product Search Intent
+router.post('/search-intent', requireAuth, searchIntentController.generateSearchIntent);
 
-// 1. AI Smart Search Intent
-router.post('/search-intent', searchIntentController.generateSearchIntent);
+// Product detail page AI panel
+router.get('/product/:productId/insights', requireAuth, productPageAI.getProductAI);
 
-// 2. AI Product Description Generator
+// Conversational Shopping Assistant
+router.post('/chat', requireAuth, conversationalShopping.chat);
+
+// Similar Product Recommendations
+router.get('/similar/:productId', requireAuth, similarProduct.getSimilarProducts);
+
+// Product Comparison
+router.post('/compare', requireAuth, productComparison.compareProducts);
+
+// Smart Budget Shopping
+router.post('/smart-budget', requireAuth, smartBudget.optimizeBudget);
+
+// Mood-based Shopping
+router.post('/mood-shopping', requireAuth, moodShopping.getMoodProducts);
+
+// AI Product Description Generator
 router.post('/generate-description', descriptionGenerator.generateDescription);
 
-// 3. AI Category & Tag Suggestion
+// AI Category & Tag Suggestion
 router.post('/suggest-category-tags', categoryTagSuggestion.suggestCategoryAndTags);
 
-// 4. AI Review Summary
-router.post('/review-summary/:productId', reviewSummary.summarizeReviews);
-
-// ── NEW ROUTES ──────────────────────────────────────────────────────────────
-
-// 5. Conversational Shopping Assistant
-//    POST /ai/chat  { message, sessionId? }
-router.post('/chat', conversationalShoppingController.chat);
-
-// 6. Similar Product Recommendation
-//    GET /ai/similar/:productId
-router.get('/similar/:productId', similarProductController.getSimilarProducts);
-
-// 7. AI Product Comparison
-//    POST /ai/compare  { productIds: ["id1","id2",...] }
-router.post('/compare', productComparisonController.compareProducts);
-
-// 8. Smart Budget Shopping
-//    POST /ai/smart-budget  { budget: 5000, purpose: "gaming setup" }
-router.post('/smart-budget', smartBudgetController.optimizeBudget);
-
-// 9. Mood / Intent Based Shopping
-//    POST /ai/mood-shopping  { mood: "minimal desk setup", maxBudget?: 5000 }
-router.post('/mood-shopping', moodShoppingController.getMoodProducts);
+// AI Review Summary
+router.post('/review-summary/:productId', requireAuth, reviewSummary.summarizeReviews);
 
 module.exports = router;

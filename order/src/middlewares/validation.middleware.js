@@ -2,11 +2,8 @@ const { body, validationResult } = require('express-validator');
 
 // Middleware to transform address format from user profile to shippingAddress format
 const transformAddressFormat = (req, res, next) => {
-    console.log("Transform middleware - initial body:", JSON.stringify(req.body, null, 2));
-    
     // Check if address is already in shippingAddress format
     if (req.body.shippingAddress) {
-        console.log("Already in shippingAddress format");
         // Normalize common variants: accept `pincode` or `zip` and populate both
         const sa = req.body.shippingAddress;
         if (sa.pincode && !sa.zip) sa.zip = sa.pincode;
@@ -24,7 +21,6 @@ const transformAddressFormat = (req, res, next) => {
             zip: addr.pincode || '',
             country: addr.country || 'India'
         };
-        console.log("Transformed nested address to shippingAddress:", JSON.stringify(req.body.shippingAddress, null, 2));
         return next();
     }
     
@@ -37,11 +33,9 @@ const transformAddressFormat = (req, res, next) => {
             zip: req.body.pincode || '',
             country: req.body.country || 'India'
         };
-        console.log("Transformed flat address fields to shippingAddress:", JSON.stringify(req.body.shippingAddress, null, 2));
         return next();
     }
     
-    console.log("No address found to transform");
     next();
 };
 

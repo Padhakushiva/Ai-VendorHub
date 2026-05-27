@@ -46,7 +46,6 @@ describe('PATCH /api/orders/:id/address — Update delivery address prior to pay
 
 
         const orderResponse = res.body.order || res.body.data || res.body;
-        console.log(orderResponse.shippingAddress);
         expect(orderResponse.shippingAddress).toMatchObject({
             street: newAddress.street,
             city: newAddress.city,

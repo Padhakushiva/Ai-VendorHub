@@ -22,6 +22,66 @@ router.get('/', productController.getProducts);
 //GET api/products/seller - Get products by seller (SELLER ONLY)
 router.get('/seller', createAuthMiddleware(['seller']), productController.getProductsBySeller);
 
+//GET api/products/compare?ids=id1,id2 - Compare products side-by-side
+router.get('/compare', productController.compareProducts);
+
+//GET api/products/trending - Get trending products by popularity score
+router.get('/trending', productController.getTrendingProducts);
+
+//GET api/products/recently-viewed - Get authenticated user's recently viewed products
+router.get(
+  '/recently-viewed',
+  createAuthMiddleware(['user', 'buyer', 'customer', 'seller', 'admin']),
+  productController.getRecentlyViewedProducts
+);
+
+//GET api/products/wishlist - Get authenticated user's wishlist
+router.get(
+  '/wishlist',
+  createAuthMiddleware(['user', 'buyer', 'customer']),
+  productController.getWishlist
+);
+
+//POST api/products/wishlist/:productId - Add product to wishlist
+router.post(
+  '/wishlist/:productId',
+  createAuthMiddleware(['user', 'buyer', 'customer']),
+  productController.addToWishlist
+);
+
+//DELETE api/products/wishlist/:productId - Remove product from wishlist
+router.delete(
+  '/wishlist/:productId',
+  createAuthMiddleware(['user', 'buyer', 'customer']),
+  productController.removeFromWishlist
+);
+
+//POST api/products/:id/view - Track product view and recently viewed list
+router.post(
+  '/:id/view',
+  createAuthMiddleware(['user', 'buyer', 'customer', 'seller', 'admin']),
+  productController.trackProductView
+);
+
+//GET api/products/:id/related - Get related products
+router.get('/:id/related', productController.getRelatedProducts);
+
+//POST api/products/:id/variants - Add product variant
+router.post(
+  '/:id/variants',
+  createAuthMiddleware(['admin', 'seller']),
+  parseNestedFormData,
+  productController.addProductVariant
+);
+
+//PATCH api/products/:id/variants/:variantId - Update product variant
+router.patch(
+  '/:id/variants/:variantId',
+  createAuthMiddleware(['admin', 'seller']),
+  parseNestedFormData,
+  productController.updateProductVariant
+);
+
 //GET api/products/:id - Get product by ID
 router.get('/:id', productController.getProductById);
 
@@ -29,7 +89,7 @@ router.get('/:id', productController.getProductById);
 router.patch(
   '/:id',
   createAuthMiddleware(['admin', 'seller']),
-  upload.none(),
+  upload.array('images', 5),
   parseNestedFormData,
   productController.updateProduct
 );

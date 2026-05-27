@@ -4,6 +4,8 @@ const CircuitBreaker = require("../utils/circuitBreaker");
 const retryWithBackoff = require("../utils/retryWithBackoff");
 const featureFlags = require("../utils/featureFlags");
 const llmMetrics = require("../utils/llmMetrics");
+const { getPrompt } = require("./prompt.service");
+const { extractJsonObject } = require("../utils/json");
 
 // Mood → keyword mapping for fallback
 const MOOD_MAP = {
@@ -75,19 +77,10 @@ class MoodShoppingService {
           const result = await this.circuitBreaker.execute(async () => {
             return await retryWithBackoff(
               async () => {
-                const prompt = `A user has a shopping mood/intent: "${mood}". 
-Understand the vibe and suggest relevant product search keywords for an Indian e-commerce store.
-Return ONLY valid JSON:
-{
-  "moodDescription": "1 sentence describing the vibe",
-  "searchKeywords": ["4-6 product search keywords"],
-  "vibe": "minimal | aesthetic | gaming | cozy | productive | travel | fitness | other"
-}`;
-                const res = await this.model.invoke(prompt);
-                const text = res.content || "";
-                const match = text.match(/\{[\s\S]*\}/);
-                if (!match) throw new Error("No JSON");
-                return JSON.parse(match[0]);
+                const res = await this.model.invoke(getPrompt("moodKeywords", { mood, maxBudget: maxBudget || "any" }));
+                const parsed = extractJsonObject(res.content, null);
+                if (!parsed) throw new Error("No JSON");
+                return parsed;
               },
               { maxRetries: 1, baseDelayMs: 500, label: "Mood-LLM" }
             );

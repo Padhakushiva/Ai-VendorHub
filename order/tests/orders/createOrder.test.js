@@ -44,6 +44,26 @@ describe('POST /api/orders — Create order from current cart', () => {
         expect(order.totalPrice).toBeDefined();
         expect(typeof order.totalPrice.amount).toBe('number');
         expect([ 'USD', 'INR' ]).toContain(order.totalPrice.currency);
+        expect(order.totals).toMatchObject({
+            subtotal: expect.any(Number),
+            tax: expect.any(Number),
+            shipping: expect.any(Number),
+            total: expect.any(Number),
+            currency: expect.any(String),
+        });
+        expect(order.paymentSummary).toMatchObject({
+            status: 'PENDING',
+            subtotal: expect.any(Number),
+            taxes: expect.any(Number),
+            shipping: expect.any(Number),
+            total: expect.any(Number),
+        });
+        expect(Array.isArray(order.timeline)).toBe(true);
+        expect(order.timeline[0]).toMatchObject({
+            type: 'created',
+            status: 'PENDING',
+        });
+        expect(order.inventoryReservation).toBeDefined();
 
 
         // Shipping address persisted

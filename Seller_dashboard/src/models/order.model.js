@@ -21,6 +21,11 @@ const orderSchema = new mongoose.Schema({
                 type: mongoose.Schema.Types.ObjectId,
                 required: true,
             },
+            variantId: String,
+            title: String,
+            image: String,
+            productSnapshot: mongoose.Schema.Types.Mixed,
+            variantSnapshot: mongoose.Schema.Types.Mixed,
             quantity: {
                 type: Number,
                 default: 1,
@@ -36,12 +41,22 @@ const orderSchema = new mongoose.Schema({
                     required: true,
                     enum: [ "USD", "INR" ]
                 }
-            }
+            },
+            finalPrice: {
+                amount: Number,
+                currency: String
+            },
+            reservationStatus: {
+                type: String,
+                enum: [ "reserved", "released", "deducted", "failed" ],
+            },
         }
     ],
     status: {
         type: String,
-        enum: [ "PENDING", "CONFIRMED", "CANCELLED", "SHIPPED", "DELIVERED" ],
+        enum: [ "PENDING", "CONFIRMED", "PAID", "PACKED", "CANCELLED", "SHIPPED", "DELIVERED", "EXPIRED" ],
+        default: "PENDING",
+        index: true,
     },
     totalPrice: {
         amount: {
@@ -58,9 +73,33 @@ const orderSchema = new mongoose.Schema({
         type: addressSchema,
         required: true
     },
+    paymentSummary: {
+        paymentId: String,
+        razorpayOrderId: String,
+        transactionId: String,
+        method: String,
+        status: {
+            type: String,
+            enum: [ "pending", "completed", "failed", "refunded", "skipped" ],
+            default: "pending",
+        },
+        paidAt: Date,
+        failedAt: Date,
+    },
+    timeline: [
+        {
+            status: String,
+            at: Date,
+            note: String,
+        }
+    ],
+    expiresAt: Date,
 }, { timestamps: true });
 
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ "items.product": 1, createdAt: -1 });
 
-const orderModel = mongoose.model("order", orderSchema);
+const orderModel = mongoose.models.order || mongoose.model("order", orderSchema);
 
 module.exports = orderModel;

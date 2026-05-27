@@ -1,24 +1,55 @@
 const axios = require('axios');
 
-async function checkAvailability(productId, quantity) {
+const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || 'http://localhost:3000';
+
+function productUrl(productId) {
+  return `${PRODUCT_SERVICE_URL}/api/product/${productId}`;
+}
+
+function normalizeProductResponse(response) {
+  const product = response?.data?.data || response?.data?.Product || response?.data?.product || response?.data;
+  if (!product || product.success === false) return null;
+  return product;
+}
+
+function findVariant(product, variantId) {
+  if (!variantId || !Array.isArray(product?.variants)) return null;
+  return product.variants.find((variant) => (
+    variant?._id?.toString?.() === variantId.toString()
+    || variant?.id?.toString?.() === variantId.toString()
+  ));
+}
+
+async function fetchProduct(productId) {
+  const response = await axios.get(productUrl(productId), {
+    timeout: 5000,
+    headers: {
+      'X-Service-Request': 'true'
+    }
+  });
+
+  const product = normalizeProductResponse(response);
+  if (!product || product.status === 'archived') {
+    throw new Error('Product not found or unavailable');
+  }
+
+  return product;
+}
+
+async function checkAvailability(productId, quantity, variantId) {
   try {
-    const response = await axios.get(
-      `http://localhost:3000/api/product/${productId}`,
-      {
-        timeout: 5000,
-        headers: {
-          'X-Service-Request': 'true'
-        }
-      }
-    );
-    
-    const product = response.data.data;
+    const product = await fetchProduct(productId);
+    const variant = findVariant(product, variantId);
+    const stock = variant ? variant.stock : product.stock;
+    const price = variant ? variant.price : product.price;
     
     return {
-      available: product.stock >= quantity,
-      stock: product.stock,
-      price: product.price,
-      title: product.title
+      available: Number(stock) >= Number(quantity),
+      stock: Number(stock) || 0,
+      price,
+      title: product.title,
+      product,
+      variant,
     };
   } catch (err) {
     console.error(`Stock check failed for ${productId}:`, err.message);
@@ -43,15 +74,15 @@ async function reserveSoftStock(productId, quantity, userId) {
 async function recomputeCartTotals(cartItems) {
   try {
     let subtotal = 0;
+    let currency = 'INR';
     
     for (let item of cartItems) {
-      const productResponse = await axios.get(
-        `http://localhost:3000/api/product/${item.productId}`,
-        { timeout: 5000 }
-      );
-      
-      const product = productResponse.data.data;
-      const itemTotal = product.price.amount * item.quantity;
+      const product = await fetchProduct(item.productId);
+      const variant = findVariant(product, item.variantId);
+      const price = item.currentPrice || variant?.price || product.price || item.productSnapshot?.price || item.unitPrice;
+      const amount = Number(price?.amount) || 0;
+      currency = price?.currency || currency;
+      const itemTotal = amount * item.quantity;
       
       subtotal += itemTotal;
     }
@@ -66,11 +97,12 @@ async function recomputeCartTotals(cartItems) {
     const total = Number((subtotal + tax + shipping).toFixed(2));
     
     return {
-      subtotal,
+      subtotal: Number(subtotal.toFixed(2)),
+      discount: 0,
       tax,
       shipping,
       total,
-      currency: 'INR'
+      currency
     };
   } catch (err) {
     console.error('Failed to recompute totals:', err.message);
@@ -79,6 +111,7 @@ async function recomputeCartTotals(cartItems) {
 }
 
 module.exports = {
+  fetchProduct,
   checkAvailability,
   reserveSoftStock,
   recomputeCartTotals,

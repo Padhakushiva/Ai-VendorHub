@@ -7,6 +7,15 @@ const { body, validationResult } = require('express-validator');
 const parseNestedFormData = (req, res, next) => {
   if (req.body) {
     // Handle nested price fields
+    if (req.body.amount !== undefined || req.body.currency !== undefined) {
+      req.body.price = {
+        amount: req.body.amount,
+        currency: req.body.currency || 'INR'
+      };
+      delete req.body.amount;
+      delete req.body.currency;
+    }
+
     if (req.body['price.amount'] || req.body['price.currency']) {
       req.body.price = {
         amount: req.body['price.amount'],
@@ -86,8 +95,7 @@ const validateProductCreation = [
 
   // Stock validation
   body('stock')
-    .notEmpty()
-    .withMessage('Stock is required')
+    .optional()
     .toInt()
     .custom((value) => {
       if (isNaN(value) || value < 0) {

@@ -6,6 +6,10 @@ let channel,connection;
 async function connect(){
     if(connection) return connection;
 
+    if (!process.env.RABBITMQ_URL) {
+        throw new Error("RABBITMQ_URL is not configured");
+    }
+
     try{
         connection = await amqplib.connect(process.env.RABBITMQ_URL);
         console.log("Connected to RabbitMQP");

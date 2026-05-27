@@ -1,0 +1,31 @@
+.shine-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-sweep::after {
+  content: "";
+  position: absolute;
+  inset: -120% auto -120% -60%;
+  width: 45%;
+  transform: rotate(18deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.54), transparent);
+  animation: shineSweep 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shineSweep {
+  0%, 42% { transform: translateX(0) rotate(18deg); opacity: 0; }
+  52% { opacity: 1; }
+  72%, 100% { transform: translateX(420%) rotate(18deg); opacity: 0; }
+}
+
+@keyframes driftLines {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-64px, 64px, 0); }
+}
+
+@keyframes softPulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.85; }
+}

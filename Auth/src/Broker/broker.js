@@ -1,38 +1,94 @@
 const amqplib = require('amqplib');
 
+let channel, connection;
+let connectingPromise = null;
 
-let channel,connection; 
+function resetBrokerState() {
+    channel = null;
+    connection = null;
+    connectingPromise = null;
+}
+
+function attachBrokerErrorHandlers(nextConnection, nextChannel) {
+    nextConnection.on('error', (error) => {
+        console.warn('RabbitMQ connection error:', error.message);
+        resetBrokerState();
+    });
+
+    nextConnection.on('close', () => {
+        console.warn('RabbitMQ connection closed. Auth service will continue without broker until reconnect.');
+        resetBrokerState();
+    });
+
+    nextChannel.on('error', (error) => {
+        console.warn('RabbitMQ channel error:', error.message);
+        channel = null;
+    });
+
+    nextChannel.on('close', () => {
+        console.warn('RabbitMQ channel closed. It will reconnect on next publish.');
+        channel = null;
+    });
+}
 
 async function connect(){
-    if(connection) return connection;
+    if(connection && channel) return connection;
+    if(connectingPromise) return connectingPromise;
 
-    try{
-        connection = await amqplib.connect(process.env.RABBITMQ_URL);
+    connectingPromise = (async () => {
+    try {
+        const nextConnection = await amqplib.connect(process.env.RABBITMQ_URL, {
+            heartbeat: Number(process.env.RABBITMQ_HEARTBEAT_SECONDS) || 60
+        });
         console.log("Connected to RabbitMQP");
-        channel = await connection.createChannel();
-        
+        const nextChannel = await nextConnection.createChannel();
+        attachBrokerErrorHandlers(nextConnection, nextChannel);
+        connection = nextConnection;
+        channel = nextChannel;
+        return connection;
     }
-    catch(error){
-        console.error("Error connecting to RabbitMQ:", error);
-        throw error;
+    catch (error) {
+        console.warn("RabbitMQ unavailable. Auth service will continue without broker:", error.message);
+        resetBrokerState();
+        return null;
     }
+    })();
+
+    return connectingPromise;
 }
 
 async function publishToQueue(queueName, data={}){
-    if(!channel || ! connection)  await connect();
+    try {
+        if(!channel || ! connection)  await connect();
 
-    await channel.assertQueue(queueName, { 
-        durable: true
-     });
+        if(!channel) {
+            console.warn(`Skipped RabbitMQ publish. Broker unavailable for queue: ${queueName}`);
+            return false;
+        }
 
-    channel.sendToQueue(queueName, Buffer.from(JSON.stringify(data)));
+        await channel.assertQueue(queueName, { 
+            durable: true
+        });
 
-    console.log("Message Sent to queue : ",queueName,data);
+        channel.sendToQueue(queueName, Buffer.from(JSON.stringify(data)));
+
+        console.log("Message Sent to queue : ",queueName,data);
+        return true;
+    } catch (error) {
+        console.warn(`RabbitMQ publish failed for ${queueName}:`, error.message);
+        resetBrokerState();
+        return false;
+    }
     
 }
 
 async function SubscribeToQueue(queueName, callback){
     if(!channel || ! connection)  await connect();
+
+    if(!channel) {
+        console.warn(`Skipped RabbitMQ subscribe. Broker unavailable for queue: ${queueName}`);
+        return false;
+    }
 
     await channel.assertQueue(queueName, { 
         durable: true
@@ -45,6 +101,8 @@ async function SubscribeToQueue(queueName, callback){
             channel.ack(msg);
         }
     });
+
+    return true;
 }
 
 module.exports = {

@@ -4,6 +4,8 @@ const CircuitBreaker = require("../utils/circuitBreaker");
 const retryWithBackoff = require("../utils/retryWithBackoff");
 const featureFlags = require("../utils/featureFlags");
 const llmMetrics = require("../utils/llmMetrics");
+const { getPrompt } = require("./prompt.service");
+const { extractJsonArray } = require("../utils/json");
 
 class SimilarProductService {
   constructor() {
@@ -66,18 +68,14 @@ class SimilarProductService {
           const kws = await this.circuitBreaker.execute(async () => {
             return await retryWithBackoff(
               async () => {
-                const prompt = `Extract 3-5 search keywords to find similar products to this one. Return ONLY a JSON array of strings.
-
-Product: ${product.title}
-Category: ${product.category || "N/A"}
-Description: ${(product.description || "").substring(0, 200)}
-
-Example output: ["gaming mouse", "wireless mouse", "rgb mouse"]`;
-                const result = await this.model.invoke(prompt);
-                const text = result.content || "";
-                const match = text.match(/\[[\s\S]*?\]/);
-                if (!match) throw new Error("No JSON array");
-                return JSON.parse(match[0]);
+                const result = await this.model.invoke(getPrompt("similarKeywords", {
+                  title: product.title,
+                  category: product.category || "N/A",
+                  description: (product.description || "").substring(0, 250),
+                }));
+                const parsed = extractJsonArray(result.content, []);
+                if (!parsed.length) throw new Error("No JSON array");
+                return parsed;
               },
               { maxRetries: 1, baseDelayMs: 500, label: "SimilarProduct-KW" }
             );

@@ -17,7 +17,17 @@ const validateAddItemToCart=[
     .withMessage('Invalid product ID format'),
 
 
+    body('variantId')
+    .optional()
+    .custom(value => mongoose.Types.ObjectId.isValid(value))
+    .withMessage('Invalid variant ID format'),
+
     body('quantity')
+    .if(body('qty').not().exists())
+    .isInt({min:1})
+    .withMessage('Quantity must be at least 1'),
+    body('qty')
+    .optional()
     .isInt({min:1})
     .withMessage('Quantity must be at least 1'),
     validateResult
