@@ -96,32 +96,32 @@ export default function AIChatBot({ products = [] }) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="ai-chat-launcher fixed right-5 top-24 z-40 flex items-center gap-3 rounded-full border border-white/15 bg-[#151724]/78 px-4 py-3 text-white shadow-[0_18px_58px_rgba(5,7,22,0.48)] backdrop-blur-2xl transition hover:-translate-y-0.5 hover:border-[#a8a2ff]/45 hover:bg-[#1c1d2d]/86 sm:right-7"
+        className="ai-chat-launcher fixed right-5 top-24 z-40 flex items-center gap-3 rounded-full border border-stone-200 bg-white/92 px-4 py-3 text-stone-950 shadow-[0_18px_46px_rgba(28,25,23,0.14)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 sm:right-7"
         aria-label="Open AI chatbot"
       >
-        <span className="ai-chat-orb grid h-11 w-11 place-items-center rounded-full bg-[#635bff] shadow-[0_14px_34px_rgba(99,91,255,0.38)]">
+        <span className="ai-chat-orb grid h-11 w-11 place-items-center rounded-full bg-stone-950 text-white shadow-sm">
           <Bot className="h-5 w-5" />
         </span>
         <span className="hidden text-left sm:block">
-          <span className="block text-[11px] font-black uppercase tracking-[0.16em] text-[#c8c3ff]">AI Assistant</span>
-          <span className="block text-sm font-black text-[#f1efff]">Ask Product AI</span>
+          <span className="block text-[11px] font-black uppercase tracking-[0.16em] text-emerald-700">AI Assistant</span>
+          <span className="block text-sm font-black text-stone-950">Ask Product AI</span>
         </span>
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-end bg-black/30 p-4 pt-24 backdrop-blur-sm sm:p-6 sm:pt-24">
-          <section className="ai-chat-panel flex h-[min(720px,82vh)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#11131f]/96 shadow-2xl">
-            <header className="flex items-center justify-between border-b border-white/10 bg-[#171827] px-5 py-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-end bg-stone-950/25 p-4 pt-24 backdrop-blur-sm sm:p-6 sm:pt-24">
+          <section className="ai-chat-panel flex h-[min(720px,82vh)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-2xl">
+            <header className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-5 py-4">
               <div className="flex items-center gap-3">
-                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#635bff]/20 text-[#d8d4ff]">
+                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-50 text-emerald-800">
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-black text-[#f1efff]">AI Shopping Assistant</p>
-                  <p className="text-xs font-bold text-[#aaa6ba]">Limited to marketplace/product help</p>
+                  <p className="text-sm font-black text-stone-950">AI Shopping Assistant</p>
+                  <p className="text-xs font-bold text-stone-500">Limited to marketplace/product help</p>
                 </div>
               </div>
-              <button type="button" onClick={() => setIsOpen(false)} className="grid h-10 w-10 place-items-center rounded-xl text-[#d7d2ff] hover:bg-white/5">
+              <button type="button" onClick={() => setIsOpen(false)} className="grid h-10 w-10 place-items-center rounded-xl text-stone-500 hover:bg-stone-100">
                 <X className="h-5 w-5" />
               </button>
             </header>
@@ -131,8 +131,8 @@ export default function AIChatBot({ products = [] }) {
                 <div key={`${item.role}-${index}`} className={`flex ${item.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[84%] rounded-2xl px-4 py-3 text-sm font-semibold leading-6 ${
                     item.role === 'user'
-                      ? 'bg-[#635bff] text-white'
-                      : 'border border-white/10 bg-white/[0.05] text-[#d8d4ea]'
+                      ? 'bg-stone-950 text-white'
+                      : 'border border-stone-200 bg-stone-50 text-stone-700'
                   }`}>
                     {item.text}
                   </div>
@@ -140,7 +140,7 @@ export default function AIChatBot({ products = [] }) {
               ))}
               {loading && (
                 <div className="flex justify-start">
-                  <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-bold text-[#d8d4ea]">
+                  <div className="flex items-center gap-2 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm font-bold text-stone-600">
                     <Loader className="h-4 w-4 animate-spin" />
                     AI thinking...
                   </div>
@@ -148,14 +148,14 @@ export default function AIChatBot({ products = [] }) {
               )}
             </div>
 
-            <div className="border-t border-white/10 p-4">
+            <div className="border-t border-stone-200 p-4">
               <div className="mb-3 flex flex-wrap gap-2">
                 {quickPrompts.map((prompt) => (
                   <button
                     key={prompt}
                     type="button"
                     onClick={() => sendMessage(prompt)}
-                    className="rounded-full border border-white/10 px-3 py-1.5 text-xs font-black text-[#c8c3ff] transition hover:bg-white/5"
+                    className="rounded-full border border-stone-200 px-3 py-1.5 text-xs font-black text-stone-600 transition hover:bg-emerald-50 hover:text-emerald-800"
                   >
                     {prompt}
                   </button>
@@ -166,15 +166,15 @@ export default function AIChatBot({ products = [] }) {
                   event.preventDefault();
                   sendMessage();
                 }}
-                className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[#0b0d18] p-2"
+                className="flex items-center gap-2 rounded-2xl border border-stone-200 bg-stone-50 p-2"
               >
                 <input
                   value={message}
                   onChange={(event) => setMessage(event.target.value)}
                   placeholder="Ask about products, budget, comparison..."
-                  className="h-11 min-w-0 flex-1 bg-transparent px-3 text-sm font-bold text-[#f1efff] outline-none placeholder:text-[#777486]"
+                  className="h-11 min-w-0 flex-1 bg-transparent px-3 text-sm font-bold text-stone-950 outline-none placeholder:text-stone-400"
                 />
-                <button type="submit" disabled={loading || !message.trim()} className="grid h-11 w-11 place-items-center rounded-xl bg-[#635bff] text-white disabled:opacity-50">
+                <button type="submit" disabled={loading || !message.trim()} className="grid h-11 w-11 place-items-center rounded-xl bg-stone-950 text-white disabled:opacity-50">
                   <Send className="h-4 w-4" />
                 </button>
               </form>

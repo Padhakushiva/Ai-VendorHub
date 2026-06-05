@@ -7,20 +7,17 @@ export default function AISmartFilterBanner({ suggestion, onApply, onDismiss }) 
   if (dismissed || !suggestion) return null;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-[#635bff]/40 bg-gradient-to-r from-[#635bff]/15 via-[#8d87ff]/10 to-[#635bff]/15 p-4 shadow-[0_8px_32px_rgba(99,91,255,0.12)]">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#635bff]/5 to-transparent opacity-40 animate-pulse" />
-      
+    <div className="relative overflow-hidden rounded-[24px] border border-stone-200 bg-white p-4 shadow-[0_16px_40px_rgba(28,25,23,0.07)]">
       <div className="relative flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 flex-1">
           <div className="flex-shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[#635bff] to-[#8d87ff] shadow-[0_4px_16px_rgba(99,91,255,0.3)]">
-              <Zap className="h-5 w-5 text-white" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-amber-200 bg-amber-50">
+              <Zap className="h-5 w-5 text-amber-700" />
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-black text-[#f1efff]">AI Smart Filter suggested for you</p>
-            <p className="mt-0.5 text-xs font-semibold text-[#bdb8ff] truncate">{suggestion}</p>
+            <p className="text-sm font-black text-stone-950">AI Smart Filter suggested for you</p>
+            <p className="mt-0.5 truncate text-xs font-black uppercase tracking-[0.04em] text-stone-500">{suggestion}</p>
           </div>
         </div>
 
@@ -29,7 +26,7 @@ export default function AISmartFilterBanner({ suggestion, onApply, onDismiss }) 
             onClick={() => {
               onApply?.();
             }}
-            className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#635bff] to-[#8d87ff] text-sm font-black text-white shadow-[0_4px_12px_rgba(99,91,255,0.3)] hover:shadow-[0_6px_20px_rgba(99,91,255,0.4)] transition active:scale-95"
+            className="rounded-xl bg-stone-950 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-800 active:scale-95"
           >
             Apply Smart Filter
           </button>
@@ -38,7 +35,7 @@ export default function AISmartFilterBanner({ suggestion, onApply, onDismiss }) 
               setDismissed(true);
               onDismiss?.();
             }}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 text-[#aaa6ba] hover:bg-white/5 transition"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 transition hover:bg-stone-50"
           >
             <X className="h-4 w-4" />
           </button>

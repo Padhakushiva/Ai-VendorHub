@@ -44,6 +44,31 @@ const unwrapList = (payload) => {
   return Array.isArray(list) ? list.map(normalizeProduct) : [];
 };
 
+const normalizeHomepageSection = (section = {}) => ({
+  ...section,
+  id: section._id || section.id,
+  title: section.title || 'Homepage section',
+  subtitle: section.subtitle || '',
+  tag: section.tag || section.title || '',
+  headline: section.headline || section.title || '',
+  strip: section.strip || section.subtitle || '',
+  badgeTop: section.badgeTop || 'AI',
+  badgeMid: section.badgeMid || 'Deals',
+  badgeBottom: section.badgeBottom || 'Sale',
+  actionLabel: section.actionLabel || 'Shop now',
+  placement: section.placement || 'after_categories',
+  query: section.query || '',
+  link: section.link || '',
+  mediaUrl: section.mediaUrl || '',
+  mediaAlt: section.mediaAlt || '',
+  products: Array.isArray(section.products) ? section.products.map(normalizeProduct) : [],
+  theme: section.theme || {},
+  position: Number(section.position || 0),
+  isActive: section.isActive !== false,
+  startAt: section.startAt || '',
+  endAt: section.endAt || '',
+});
+
 const apiErrorMessage = (err, fallback) => {
   const data = err.response?.data;
   if (Array.isArray(data?.errors) && data.errors.length > 0) {
@@ -58,6 +83,9 @@ export const ProductProvider = ({ children }) => {
   const [sellerProducts, setSellerProducts] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
+  const [homepageSections, setHomepageSections] = useState([]);
+  const [adminHomepageSections, setAdminHomepageSections] = useState([]);
+  const [homepageLoading, setHomepageLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [trendingLoading, setTrendingLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -149,6 +177,63 @@ export const ProductProvider = ({ children }) => {
     }
   }, []);
 
+  const fetchHomepageSections = useCallback(async () => {
+    try {
+      setHomepageLoading(true);
+      const response = await productApi.get('/homepage');
+      const sections = Array.isArray(response.data?.data) ? response.data.data.map(normalizeHomepageSection) : [];
+      setHomepageSections(sections);
+      return { success: true, sections };
+    } catch (err) {
+      setHomepageSections([]);
+      return { success: false, message: apiErrorMessage(err, 'Failed to load homepage sections') };
+    } finally {
+      setHomepageLoading(false);
+    }
+  }, []);
+
+  const fetchAdminHomepageSections = useCallback(async () => {
+    try {
+      const response = await productApi.get('/homepage/admin');
+      const sections = Array.isArray(response.data?.data) ? response.data.data.map(normalizeHomepageSection) : [];
+      setAdminHomepageSections(sections);
+      return { success: true, sections };
+    } catch (err) {
+      setAdminHomepageSections([]);
+      return { success: false, message: apiErrorMessage(err, 'Failed to load homepage CMS') };
+    }
+  }, []);
+
+  const createHomepageSection = useCallback(async (sectionData) => {
+    try {
+      const response = await productApi.post('/homepage', sectionData);
+      await Promise.all([fetchHomepageSections(), fetchAdminHomepageSections()]);
+      return { success: true, section: normalizeHomepageSection(response.data?.data), message: response.data?.message || 'Homepage section created' };
+    } catch (err) {
+      return { success: false, message: apiErrorMessage(err, 'Homepage section creation failed') };
+    }
+  }, [fetchAdminHomepageSections, fetchHomepageSections]);
+
+  const updateHomepageSection = useCallback(async (sectionId, sectionData) => {
+    try {
+      const response = await productApi.patch(`/homepage/${sectionId}`, sectionData);
+      await Promise.all([fetchHomepageSections(), fetchAdminHomepageSections()]);
+      return { success: true, section: normalizeHomepageSection(response.data?.data), message: response.data?.message || 'Homepage section updated' };
+    } catch (err) {
+      return { success: false, message: apiErrorMessage(err, 'Homepage section update failed') };
+    }
+  }, [fetchAdminHomepageSections, fetchHomepageSections]);
+
+  const deleteHomepageSection = useCallback(async (sectionId) => {
+    try {
+      const response = await productApi.delete(`/homepage/${sectionId}`);
+      await Promise.all([fetchHomepageSections(), fetchAdminHomepageSections()]);
+      return { success: true, message: response.data?.message || 'Homepage section deleted' };
+    } catch (err) {
+      return { success: false, message: apiErrorMessage(err, 'Homepage section delete failed') };
+    }
+  }, [fetchAdminHomepageSections, fetchHomepageSections]);
+
   const fetchSellerProducts = useCallback(async () => {
     try {
       const response = await productApi.get('/seller?limit=50');
@@ -231,6 +316,10 @@ export const ProductProvider = ({ children }) => {
   }, [fetchTrendingProducts]);
 
   useEffect(() => {
+    fetchHomepageSections();
+  }, [fetchHomepageSections]);
+
+  useEffect(() => {
     fetchWishlist();
     fetchRecentlyViewed();
   }, [fetchWishlist, fetchRecentlyViewed]);
@@ -247,6 +336,9 @@ export const ProductProvider = ({ children }) => {
     sellerProducts,
     wishlist,
     recentlyViewed,
+    homepageSections,
+    adminHomepageSections,
+    homepageLoading,
     loading,
     trendingLoading,
     error,
@@ -261,6 +353,11 @@ export const ProductProvider = ({ children }) => {
     fetchWishlist,
     toggleWishlist,
     fetchRecentlyViewed,
+    fetchHomepageSections,
+    fetchAdminHomepageSections,
+    createHomepageSection,
+    updateHomepageSection,
+    deleteHomepageSection,
     fetchSellerProducts,
     createSellerProduct,
     updateSellerProduct,

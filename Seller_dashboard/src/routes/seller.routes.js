@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const createAuthMiddleware = require("../middleware/auth.middleware");
 const sellerController = require("../controllers/seller.controller");
+const homepageController = require("../controllers/homepage.controller");
 
 
 router.get("/metrics",createAuthMiddleware(["seller"]), sellerController.getSellerMetrics);
@@ -31,6 +32,15 @@ router.get("/low-stock-alerts", createAuthMiddleware(["seller"]), sellerControll
 router.patch("/low-stock-alerts/:id/read", createAuthMiddleware(["seller"]), sellerController.markLowStockAlertRead);
 
 router.patch("/low-stock-alerts/:id/resolve", createAuthMiddleware(["seller"]), sellerController.resolveLowStockAlert);
+
+// Homepage Management Routes (Admin Only)
+router.get("/homepage", createAuthMiddleware(["admin"]), homepageController.getHomepageSections);
+
+router.post("/homepage", createAuthMiddleware(["admin"]), homepageController.createHomepageSection);
+
+router.patch("/homepage/:id", createAuthMiddleware(["admin"]), homepageController.updateHomepageSection);
+
+router.delete("/homepage/:id", createAuthMiddleware(["admin"]), homepageController.deleteHomepageSection);
 
 
 module.exports = router;

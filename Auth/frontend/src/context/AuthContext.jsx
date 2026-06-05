@@ -92,10 +92,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Login handler
-  const login = async (emailOrUsername, password, isSeller = false) => {
+  const login = async (emailOrUsername, password, accountType = 'user') => {
     setError(null);
     try {
-      const endpoint = isSeller ? '/api/auth/login/seller' : '/api/auth/login';
+      const type = typeof accountType === 'boolean' ? (accountType ? 'seller' : 'user') : accountType;
+      const endpoint = type === 'admin'
+        ? '/api/auth/login/admin'
+        : type === 'seller'
+          ? '/api/auth/login/seller'
+          : '/api/auth/login';
       const payload = emailOrUsername.includes('@') 
         ? { email: emailOrUsername, password } 
         : { username: emailOrUsername, password };

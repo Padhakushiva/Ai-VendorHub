@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import Login from './pages/Login';
@@ -12,14 +12,16 @@ import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
 import { Loader, ShieldCheck } from 'lucide-react';
 import GlowBackground from './components/GlowBackground';
-import { getDefaultPostAuthUrl, goAfterAuth, goToUrl } from './utils/redirect';
+import { getRedirectFromSearch, goAfterAuth, rememberRedirect } from './utils/redirect';
 
 const PostAuthRedirect = ({ account }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    goToUrl(navigate, getDefaultPostAuthUrl(account));
-  }, [account, navigate]);
+    rememberRedirect(getRedirectFromSearch(location.search));
+    goAfterAuth(navigate, account);
+  }, [account, location.search, navigate]);
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4">
@@ -76,16 +78,16 @@ const AuthSuccess = () => {
   useEffect(() => {
     const redirectTimer = setTimeout(() => {
       goAfterAuth(navigate);
-    }, 1800);
+    }, 5000);
 
     const finishGoogleLogin = async () => {
       const result = await Promise.race([
         refreshUser(),
-        new Promise((resolve) => setTimeout(() => resolve({ success: true, timedOut: true }), 1500)),
+        new Promise((resolve) => setTimeout(() => resolve({ success: false, timedOut: true }), 4500)),
       ]);
 
       clearTimeout(redirectTimer);
-      goAfterAuth(navigate, result?.user || 'user');
+      goAfterAuth(navigate, result?.success && result?.user ? result.user : 'user');
     };
 
     finishGoogleLogin();

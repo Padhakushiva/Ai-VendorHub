@@ -21,6 +21,9 @@ router.post('/auth/register/seller', authRateLimiter, validatorMiddleware.regist
 // POST /api/auth/login
 router.post('/auth/login', authRateLimiter, validatorMiddleware.loginUserValidation, authController.loginuser);
 
+// POST /api/auth/login/admin
+router.post('/auth/login/admin', authRateLimiter, validatorMiddleware.loginUserValidation, authController.loginAdmin);
+
 // POST /api/auth/login/seller
 router.post('/auth/login/seller', authRateLimiter, validatorMiddleware.loginUserValidation, authController.loginSeller);
 
@@ -66,9 +69,12 @@ router.get('/auth/google', (req, res, next) => {
         });
     }
 
-    const role = ['seller', 'merchant'].includes(String(req.query.role || '').toLowerCase())
-        ? 'seller'
-        : 'user';
+    const requestedRole = String(req.query.role || '').toLowerCase();
+    const role = requestedRole === 'admin'
+        ? 'admin'
+        : ['seller', 'merchant'].includes(requestedRole)
+            ? 'seller'
+            : 'user';
 
     return passport.authenticate('google', {
         scope: ['profile', 'email'],

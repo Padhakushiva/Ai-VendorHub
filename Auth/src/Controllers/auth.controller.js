@@ -299,6 +299,62 @@ function buildUserEventPayload(eventName, account, isSeller = false, changes = [
   return payload;
 }
 
+const loginFromUserCollection = async (req, res, allowedRoles = ['user'], label = 'user') => {
+  try {
+    let { username, email, password } = req.body;
+
+    if ((!email && !username) || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email or username and password are required",
+      });
+    }
+
+    if (email) {
+      email = email.toLowerCase();
+    }
+
+    const orConditions = [];
+    if (email) orConditions.push({ email });
+    if (username) orConditions.push({ username });
+
+    const user = await userModel
+      .findOne({ $or: orConditions, role: { $in: allowedRoles } })
+      .select("+password");
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: `Invalid ${label} username, email or password`,
+      });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: `Invalid ${label} username, email or password`,
+      });
+    }
+
+    const { accessToken, refreshToken } = await createAuthTokens(user);
+    setAuthCookies(res, accessToken, refreshToken);
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      user: buildAccountPayload(user, false),
+      token: accessToken,
+      accessToken,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 async function publishUserEvent(eventName, account, isSeller = false, changes = []) {
   const payload = buildUserEventPayload(eventName, account, isSeller, changes);
 
@@ -451,96 +507,12 @@ async function registerSeller(req, res) {
 
 //LOGIN USER
 async function loginuser(req, res) {
-  try {
-    let { username, email, password } = req.body;
+  return loginFromUserCollection(req, res, ['user'], 'buyer');
+}
 
-    // Validate required fields
-
-    if ((!email && !username) || !password) {
-      return res.status(400).json({
-        success: false,
-
-        message: "Email or username and password are required",
-      });
-    }
-
-    // Normalize email
-
-    if (email) {
-      email = email.toLowerCase();
-    }
-
-    // Build query dynamically
-
-    let orConditions = [];
-
-    if (email) {
-      orConditions.push({ email });
-    }
-
-    if (username) {
-      orConditions.push({ username });
-    }
-
-    // Find user
-
-    const user = await userModel
-      .findOne({
-        $or: orConditions,
-      })
-      .select("+password");
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-
-        message: "Invalid username, email or password",
-      });
-    }
-
-    // Compare password
-
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordMatch) {
-      return res.status(401).json({
-        success: false,
-
-        message: "Invalid username, email or password",
-      });
-    }
-
-    const { accessToken, refreshToken } = await createAuthTokens(user);
-    setAuthCookies(res, accessToken, refreshToken);
-
-    return res.status(200).json({
-      success: true,
-
-      message: "Login successful",
-
-      user: {
-        id: user._id,
-
-        username: user.username,
-
-        email: user.email,
-
-        fullName: user.fullName,
-
-        addresses: user.addresses || [],
-
-        role: user.role,
-      },
-      token: accessToken,
-      accessToken,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-
-      message: "Internal server error",
-    });
-  }
+//LOGIN ADMIN
+async function loginAdmin(req, res) {
+  return loginFromUserCollection(req, res, ['admin'], 'admin');
 }
 
 //LOGIN SELLER
@@ -1286,6 +1258,7 @@ async function deleteAddress(req, res) {
 module.exports = {
   registeruser,
   loginuser,
+  loginAdmin,
   logoutUser,
   getCurrentUser,
   getUserAddresses,

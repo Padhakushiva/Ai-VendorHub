@@ -22,7 +22,7 @@ const paymentSchema = new mongoose.Schema({
     },
     method:{
         type:String,
-        enum:["credit_card","debit_card","upi","paypal","cod"],
+        enum:["credit_card","debit_card","upi","paypal","cod","test_success"],
     },
     transactionId:{
         type:String,

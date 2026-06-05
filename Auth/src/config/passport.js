@@ -44,6 +44,24 @@ const splitDisplayName = (displayName) => {
   return { firstName, lastName };
 };
 
+const getRequestedGoogleRole = (state) => {
+  const value = String(state || '').toLowerCase();
+  if (value === 'admin') return 'admin';
+  if (value === 'seller' || value === 'merchant') return 'seller';
+  return 'user';
+};
+
+const isAdminEmailAllowed = (email) => {
+  const allowedEmails = (process.env.ADMIN_GOOGLE_EMAILS || '')
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (allowedEmails.includes(email)) return true;
+
+  return process.env.NODE_ENV !== 'production' && process.env.ADMIN_GOOGLE_EMAILS === undefined;
+};
+
 const buildUserEventPayload = (eventName, account, accountType = 'user', changes = []) => {
   const payload = {
     event: eventName,
@@ -91,22 +109,30 @@ if (isGoogleAuthConfigured()) {
   }, async (req, accessToken, refreshToken, profile, done) => {
     try {
       const email = profile.emails?.[0]?.value?.toLowerCase();
-      const requestedRole = ['seller', 'merchant'].includes(String(req.query.state || '').toLowerCase())
-        ? 'seller'
-        : 'user';
+      const requestedRole = getRequestedGoogleRole(req.query.state);
       const accountModel = requestedRole === 'seller' ? sellerModel : userModel;
-      const accountType = requestedRole === 'seller' ? 'seller' : 'user';
+      const accountType = requestedRole;
 
       if (!email) {
         return done(null, false, { message: 'Google account email is required' });
       }
 
-      let account = await accountModel.findOne({
-        $or: [
-          { googleId: profile.id },
-          { email },
-        ],
-      });
+      const accountQuery = requestedRole === 'admin'
+        ? {
+          role: 'admin',
+          $or: [
+            { googleId: profile.id },
+            { email },
+          ],
+        }
+        : {
+          $or: [
+            { googleId: profile.id },
+            { email },
+          ],
+        };
+
+      let account = await accountModel.findOne(accountQuery);
 
       if (account) {
         const changes = [];
@@ -127,6 +153,10 @@ if (isGoogleAuthConfigured()) {
           await publishUserEvent(USER_UPDATED_EVENT, account, accountType, changes);
         }
         return done(null, account);
+      }
+
+      if (requestedRole === 'admin' && !isAdminEmailAllowed(email)) {
+        return done(null, false, { message: 'Google admin access is not enabled for this email' });
       }
 
       const fullName = splitDisplayName(profile.displayName);

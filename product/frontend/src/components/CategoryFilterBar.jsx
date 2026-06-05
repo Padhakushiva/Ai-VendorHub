@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 
 export default function CategoryFilterBar({ categories, selectedCategory, onCategoryChange, topCategories = [] }) {
   const containerRef = React.useRef(null);
@@ -43,23 +43,23 @@ export default function CategoryFilterBar({ categories, selectedCategory, onCate
       {showLeftScroll && (
         <button
           onClick={() => scroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-[#0f1119] via-[#0f1119] to-transparent"
+          className="absolute left-0 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white shadow-sm"
         >
-          <ChevronLeft className="h-5 w-5 text-[#8d87ff]" />
+          <ChevronLeft className="h-5 w-5 text-stone-950" />
         </button>
       )}
 
       {/* Categories container */}
       <div
         ref={containerRef}
-        className="flex gap-2 overflow-x-auto scroll-smooth pb-2 px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="flex gap-3 overflow-x-auto scroll-smooth px-4 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       >
         <button
           onClick={() => onCategoryChange('')}
-          className={`px-4 py-2 rounded-full whitespace-nowrap font-black text-sm transition ${
+          className={`whitespace-nowrap rounded-full border px-5 py-2.5 text-sm font-black shadow-sm transition ${
             selectedCategory === ''
-              ? 'bg-gradient-to-r from-[#635bff] to-[#8d87ff] text-white shadow-[0_4px_12px_rgba(99,91,255,0.3)]'
-              : 'border border-white/20 text-[#bdb8ff] hover:border-[#635bff] hover:text-[#d8d4ff]'
+              ? 'border-stone-950 bg-stone-950 text-white'
+              : 'border-stone-200 bg-white text-stone-700 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-800'
           }`}
         >
           All Electronics
@@ -69,10 +69,10 @@ export default function CategoryFilterBar({ categories, selectedCategory, onCate
           <button
             key={category}
             onClick={() => onCategoryChange(category)}
-            className={`px-4 py-2 rounded-full whitespace-nowrap font-black text-sm transition ${
+            className={`whitespace-nowrap rounded-full border px-5 py-2.5 text-sm font-black shadow-sm transition ${
               selectedCategory === category
-                ? 'bg-gradient-to-r from-[#635bff] to-[#8d87ff] text-white shadow-[0_4px_12px_rgba(99,91,255,0.3)]'
-                : 'border border-white/20 text-[#bdb8ff] hover:border-[#635bff] hover:text-[#d8d4ff]'
+                ? 'border-emerald-700 bg-emerald-700 text-white'
+                : 'border-stone-200 bg-white text-stone-700 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-800'
             }`}
           >
             {category}
@@ -80,8 +80,8 @@ export default function CategoryFilterBar({ categories, selectedCategory, onCate
         ))}
 
         {/* Smart Deals badge */}
-        <button className="px-4 py-2 rounded-full whitespace-nowrap font-black text-sm border border-[#ff8c42]/50 text-[#ff8c42] hover:bg-[#ff8c42]/10 transition flex items-center gap-1">
-          <span className="text-lg">⚡</span>
+        <button className="flex whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 px-5 py-2.5 text-sm font-black text-amber-900 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-100">
+          <Zap className="mr-1.5 h-4 w-4" />
           Smart Deals
         </button>
       </div>
@@ -90,9 +90,9 @@ export default function CategoryFilterBar({ categories, selectedCategory, onCate
       {showRightScroll && (
         <button
           onClick={() => scroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-l from-[#0f1119] via-[#0f1119] to-transparent"
+          className="absolute right-0 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white shadow-sm"
         >
-          <ChevronRight className="h-5 w-5 text-[#8d87ff]" />
+          <ChevronRight className="h-5 w-5 text-stone-950" />
         </button>
       )}
     </div>

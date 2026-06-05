@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, Menu, Search, ShoppingCart, User, X } from 'lucide-react';
+import { BadgePercent, Clock3, Flame, Heart, LayoutDashboard, LogOut, Menu, ShoppingCart, Sparkles, User, X } from 'lucide-react';
 import { useProduct } from '../context/ProductContext';
 import { useAuthBridge } from '../context/AuthBridgeContext';
+import { useCart } from '../context/CartContext';
 
 // Unique AI-Vendor Hub Logo
 const AIVendorLogo = () => (
   <svg width="44" height="44" viewBox="0 0 44 44" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#ffffff" />
-        <stop offset="100%" stopColor="#e0e0ff" />
+        <stop offset="0%" stopColor="#1c1917" />
+        <stop offset="100%" stopColor="#166534" />
       </linearGradient>
     </defs>
     
@@ -48,64 +49,147 @@ const AIVendorLogo = () => (
 );
 
 export default function Navbar() {
-  const { filters, updateFilters } = useProduct();
+  const { filters, updateFilters, resetFilters, wishlist } = useProduct();
   const { user, isAuthenticated, loading, loginUrl, profileUrl, logout } = useAuthBridge();
+  const { itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   // AI control is now available via floating control center on the page
 
   const isSeller = isAuthenticated && ['seller', 'admin'].includes(user?.role);
-  const navLinks = ['Shop', 'New Arrivals', 'Deals'];
+  const isAdmin = isAuthenticated && user?.role === 'admin';
+  const jumpToCatalog = () => {
+    window.setTimeout(() => {
+      document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+  };
+  const navActions = [
+    {
+      label: 'Shop',
+      icon: Sparkles,
+      active: !filters.searchTerm && !filters.category && filters.sort === 'newest' && filters.maxPrice === '',
+      onClick: () => {
+        resetFilters();
+        jumpToCatalog();
+      },
+    },
+    {
+      label: 'Trending',
+      icon: Flame,
+      active: filters.sort === 'stock_desc',
+      onClick: () => {
+        updateFilters({ searchTerm: '', sort: 'stock_desc' });
+        jumpToCatalog();
+      },
+    },
+    {
+      label: 'Deals',
+      icon: BadgePercent,
+      active: filters.maxPrice === '10000',
+      onClick: () => {
+        updateFilters({ searchTerm: '', maxPrice: '10000', sort: 'price_asc' });
+        jumpToCatalog();
+      },
+    },
+    {
+      label: 'Newest',
+      icon: Clock3,
+      active: filters.sort === 'newest' && Boolean(filters.searchTerm || filters.category || filters.maxPrice || filters.minPrice),
+      onClick: () => {
+        updateFilters({ sort: 'newest' });
+        jumpToCatalog();
+      },
+    },
+  ];
 
   // removed: handleAIClick — AI trigger moved to floating control center
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/5 bg-[#11111d]/95 backdrop-blur-xl">
-      <div className="mx-auto flex h-[80px] max-w-7xl items-center px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-[#635bff] to-[#8d87ff] transition-all duration-300 group-hover:shadow-lg group-hover:shadow-[#635bff]/50">
+    <header className="sticky top-0 z-40 px-3 py-3 sm:px-6 lg:px-10">
+      <div className="relative flex h-[76px] w-full items-center overflow-hidden rounded-[28px] border border-white/80 bg-[rgba(255,255,255,0.30)] px-4 shadow-[0_20px_70px_rgba(28,25,23,0.18)] backdrop-blur-[24px] backdrop-saturate-150 sm:px-6 lg:px-8 2xl:px-10">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/70 via-white/24 to-stone-300/20" />
+        <div className="pointer-events-none absolute inset-0 rounded-[28px] ring-1 ring-inset ring-white/55" />
+        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-white" />
+        <div className="relative flex w-full items-center">
+        <Link to="/" className="group flex min-w-0 items-center gap-3.5">
+          <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/70 bg-white/45 shadow-sm backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-0.5">
+            <span className="absolute inset-1 rounded-xl bg-white/10 opacity-0 transition group-hover:opacity-100" />
             <AIVendorLogo />
           </div>
-          <span className="hidden text-2xl font-black tracking-tight text-[#c8c3ff] sm:text-3xl sm:inline-block transition-colors group-hover:text-[#8d87ff]">
-            Ai-VendorHub
-          </span>
+          <div className="hidden min-w-0 sm:block">
+            <span className="block truncate text-2xl font-black tracking-tight text-stone-950 transition-colors group-hover:text-emerald-800">
+              Ai-VendorHub
+            </span>
+            <span className="mt-1 hidden items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700 lg:flex">
+              <Sparkles className="h-3 w-3" />
+              AI Marketplace
+            </span>
+          </div>
         </Link>
 
-        <nav className="ml-12 hidden items-center gap-6 md:flex">
-          {navLinks.map((item, index) => (
-            <a
-              key={item}
-              href={index === 0 ? '/' : '#catalog'}
-              className={`text-sm font-black text-[#bab5c9] transition hover:text-[#f2efff] ${index === 0 ? 'border-b-2 border-[#c8c3ff] pb-0.5 text-[#f2efff]' : ''}`}
+        <nav className="ml-10 hidden items-center rounded-full border border-white/65 bg-white/35 p-1.5 shadow-sm backdrop-blur-xl md:flex">
+          {navActions.map(({ label, icon: Icon, active, onClick }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={onClick}
+              className={`rounded-full px-5 py-2.5 text-sm font-black transition ${
+                active
+                  ? 'bg-stone-950 text-white shadow-sm'
+                  : 'text-stone-700 hover:bg-white/65 hover:text-emerald-800'
+              }`}
             >
-              {item}
-            </a>
+              <Icon className="mr-1.5 inline h-4 w-4" />
+              {label}
+            </button>
           ))}
           {isSeller && (
-            <Link to="/seller-dashboard" className="text-sm font-black text-[#c8c3ff] transition hover:text-[#f2efff]">
+            <Link to="/seller-dashboard" className="rounded-full px-5 py-2.5 text-sm font-black text-emerald-700 transition hover:bg-white hover:text-stone-950">
               Seller Dashboard
+            </Link>
+          )}
+          {isAdmin && (
+            <Link to="/admin-dashboard" className="rounded-full bg-stone-950 px-5 py-2.5 text-sm font-black text-white transition hover:bg-emerald-800">
+              <LayoutDashboard className="mr-1.5 inline h-4 w-4" />
+              Admin Portal
             </Link>
           )}
           {/* AI button removed from navbar: use floating AI control center on page */}
         </nav>
 
-        <div className="ml-auto hidden h-12 w-[320px] items-center gap-2 rounded-lg border border-white/10 bg-[#1a1b26] px-3 lg:flex">
-          <Search className="h-5 w-5 text-[#817d94]" />
-          <input
-            value={filters.searchTerm}
-            onChange={(event) => updateFilters({ searchTerm: event.target.value })}
-            placeholder="Search products..."
-            className="h-full flex-1 bg-transparent text-sm font-bold text-[#f1efff] outline-none placeholder:text-[#817d94]"
-          />
-        </div>
-
-        <div className="ml-5 hidden items-center gap-5 md:flex">
-          <button type="button" className="text-[#c8c3d4] transition hover:text-white" aria-label="Cart">
-            <ShoppingCart className="h-7 w-7" />
+        <div className="ml-auto hidden items-center gap-3 md:flex">
+          <button
+            type="button"
+            onClick={() => {
+              if (!isAuthenticated) {
+                window.location.href = loginUrl;
+                return;
+              }
+              updateFilters({ searchTerm: '', sort: 'newest' });
+              jumpToCatalog();
+            }}
+            className="hidden h-11 items-center gap-2 rounded-full border border-white/70 bg-white/45 px-4 text-sm font-black text-stone-800 shadow-sm backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/70 hover:text-emerald-800 xl:inline-flex"
+            aria-label="Wishlist"
+          >
+            <Heart className="h-4 w-4" />
+            Wishlist
+            {wishlist.length > 0 && (
+              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-amber-100 px-1.5 text-[11px] text-amber-900">
+                {wishlist.length}
+              </span>
+            )}
           </button>
+          <Link to="/cart" className="relative grid h-11 w-11 place-items-center rounded-full bg-stone-950 text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-800" aria-label="Cart">
+            <ShoppingCart className="h-5 w-5" />
+            {itemCount > 0 && (
+              <span className="absolute -right-1 -top-1 grid h-6 min-w-6 place-items-center rounded-full border border-white bg-amber-400 px-1 text-[11px] font-black text-stone-950">
+                {itemCount > 99 ? '99+' : itemCount}
+              </span>
+            )}
+          </Link>
           {isAuthenticated ? (
-            <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.05] px-2 py-2">
-              <a href={profileUrl} className="flex items-center gap-2 text-[#f1efff] transition hover:text-white" aria-label="Profile">
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-[#635bff] text-sm font-black">
+            <div className="flex items-center gap-2 rounded-full border border-white/70 bg-white/45 p-1.5 shadow-sm backdrop-blur-xl">
+              <a href={profileUrl} className="flex items-center gap-2 text-stone-950 transition hover:text-emerald-800" aria-label="Profile">
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-[#f5ead2] text-sm font-black text-stone-950">
                   {(user?.username || user?.email || 'U').slice(0, 2).toUpperCase()}
                 </span>
                 <span className="max-w-32 truncate text-sm font-black">{user?.username || 'Account'}</span>
@@ -113,14 +197,14 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={logout}
-                className="grid h-9 w-9 place-items-center rounded-full text-[#c8c3d4] transition hover:bg-white/10 hover:text-white"
+                className="grid h-9 w-9 place-items-center rounded-full text-stone-600 transition hover:bg-stone-100 hover:text-stone-950"
                 aria-label="Logout"
               >
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
           ) : (
-            <a href={loginUrl} className="inline-flex items-center gap-2 rounded-full bg-[#635bff] px-4 py-2 text-sm font-black text-white transition hover:bg-[#746dff]" aria-label="Login">
+            <a href={loginUrl} className="inline-flex h-11 items-center gap-2 rounded-full bg-stone-950 px-6 text-[15px] font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-800" aria-label="Login">
               <User className="h-4 w-4" />
               {loading ? 'Checking...' : 'Login'}
             </a>
@@ -130,38 +214,47 @@ export default function Navbar() {
         <button
           type="button"
           onClick={() => setMenuOpen((value) => !value)}
-          className="ml-auto grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-[#f1efff] md:hidden"
+          className="ml-auto grid h-11 w-11 place-items-center rounded-xl border border-white/70 bg-white/45 text-stone-950 shadow-sm backdrop-blur-xl md:hidden"
           aria-label="Menu"
         >
           {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
+        </div>
       </div>
 
       {menuOpen && (
-        <div className="border-t border-white/5 bg-[#11111d] px-4 py-4 md:hidden">
-          <div className="mb-4 flex h-11 items-center gap-3 rounded-xl border border-white/10 bg-[#1a1b26] px-4">
-            <Search className="h-5 w-5 text-[#817d94]" />
-            <input
-              value={filters.searchTerm}
-              onChange={(event) => updateFilters({ searchTerm: event.target.value })}
-              placeholder="Search products..."
-              className="h-full flex-1 bg-transparent text-sm font-bold text-[#f1efff] outline-none"
-            />
-          </div>
+        <div className="mt-3 rounded-3xl border border-stone-200 bg-white px-4 py-4 shadow-[0_18px_44px_rgba(28,25,23,0.12)] md:hidden">
           <div className="grid gap-2">
-            {navLinks.map((item) => (
-              <a key={item} href="#catalog" onClick={() => setMenuOpen(false)} className="rounded-xl bg-white/5 px-4 py-3 text-sm font-black text-[#d9d5ee]">
-                {item}
-              </a>
+            {navActions.map(({ label, icon: Icon, onClick }) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => {
+                  onClick();
+                  setMenuOpen(false);
+                }}
+                className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-left text-sm font-black text-stone-950"
+              >
+                <Icon className="mr-2 inline h-4 w-4" />
+                {label}
+              </button>
             ))}
             {isSeller && (
-              <Link to="/seller-dashboard" onClick={() => setMenuOpen(false)} className="rounded-xl bg-white/5 px-4 py-3 text-sm font-black text-[#d9d5ee]">
+              <Link to="/seller-dashboard" onClick={() => setMenuOpen(false)} className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm font-black text-stone-950">
                 Seller Dashboard
               </Link>
             )}
-            <a href={isAuthenticated ? profileUrl : loginUrl} className="rounded-xl bg-[#635bff] px-4 py-3 text-sm font-black text-white">
+            {isAdmin && (
+              <Link to="/admin-dashboard" onClick={() => setMenuOpen(false)} className="rounded-xl bg-stone-950 px-4 py-3 text-sm font-black text-white">
+                Admin Portal
+              </Link>
+            )}
+            <a href={isAuthenticated ? profileUrl : loginUrl} className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white">
               {isAuthenticated ? `Account: ${user?.username || user?.email || 'Profile'}` : 'Login to continue'}
             </a>
+            <Link to="/cart" onClick={() => setMenuOpen(false)} className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-black text-amber-900">
+              Cart {itemCount > 0 ? `(${itemCount})` : ''}
+            </Link>
             {/* Mobile AI button removed; floating control center available on page */}
           </div>
         </div>

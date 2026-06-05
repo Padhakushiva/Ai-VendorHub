@@ -20,8 +20,11 @@ html {
 }
 
 body {
-  background: linear-gradient(135deg, #03071e 0%, #0f0f1e 100%);
-  color: #e2e8f0;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(245, 158, 11, 0.10), transparent 28%),
+    radial-gradient(circle at 92% 8%, rgba(16, 185, 129, 0.10), transparent 30%),
+    linear-gradient(135deg, #fbfaf7 0%, #f3efe5 48%, #eef5ed 100%);
+  color: #171717;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -29,4 +32,129 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   width: 100%;
+}
+
+.vendorhub-black-glass {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.045) 34%, rgba(0,0,0,0.48)),
+    rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(255,255,255,0.34);
+  box-shadow:
+    0 34px 100px rgba(0,0,0,0.38),
+    inset 0 1px 0 rgba(255,255,255,0.55),
+    inset 0 -1px 0 rgba(255,255,255,0.10);
+  backdrop-filter: blur(30px) saturate(1.45);
+  -webkit-backdrop-filter: blur(30px) saturate(1.45);
+}
+
+.vendorhub-glass-card {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.66), rgba(255,255,255,0.34) 45%, rgba(255,255,255,0.20)),
+    rgba(255,255,255,0.30);
+  border: 1px solid rgba(255,255,255,0.72);
+  box-shadow:
+    0 24px 70px rgba(28,25,23,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.86),
+    inset 0 -1px 0 rgba(255,255,255,0.20);
+  backdrop-filter: blur(28px) saturate(1.35);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
+}
+
+.vendorhub-glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,0.58), transparent 30%, rgba(255,255,255,0.12)),
+    radial-gradient(circle at 16% 0%, rgba(255,255,255,0.52), transparent 30%),
+    radial-gradient(circle at 92% 8%, rgba(16,185,129,0.10), transparent 34%),
+    radial-gradient(circle at 8% 88%, rgba(245,158,11,0.08), transparent 30%);
+  pointer-events: none;
+}
+
+.vendorhub-glass-card::after {
+  content: "";
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 0;
+  z-index: -1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.92), transparent);
+}
+
+.vendorhub-glass-card-dark {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05) 38%, rgba(0,0,0,0.38)),
+    rgba(18,18,18,0.68);
+  border: 1px solid rgba(255,255,255,0.28);
+  box-shadow:
+    0 26px 78px rgba(0,0,0,0.32),
+    inset 0 1px 0 rgba(255,255,255,0.42);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+}
+
+.vendorhub-glass-card-dark::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,0.24), transparent 34%, rgba(16,185,129,0.10)),
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,0.18), transparent 30%);
+  pointer-events: none;
+}
+
+.vendorhub-black-glass::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,0.34), transparent 24%, transparent 64%, rgba(255,255,255,0.10)),
+    radial-gradient(circle at 18% 0%, rgba(255,255,255,0.24), transparent 28%),
+    radial-gradient(circle at 86% 12%, rgba(16,185,129,0.12), transparent 34%);
+  pointer-events: none;
+}
+
+.vendorhub-black-glass::after {
+  content: "";
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 0;
+  height: 1px;
+  z-index: -1;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.82), transparent);
+}
+
+.vendorhub-glass-field {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.13), rgba(255,255,255,0.055)),
+    rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(255,255,255,0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.22),
+    0 10px 30px rgba(0,0,0,0.16);
+  backdrop-filter: blur(18px) saturate(1.25);
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+}
+
+.vendorhub-glass-field:focus {
+  background: rgba(0,0,0,0.50);
+  border-color: rgba(52, 211, 153, 0.62);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.24),
+    0 0 0 4px rgba(16,185,129,0.10);
 }

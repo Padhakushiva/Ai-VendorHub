@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/product.controller');
+const homepageController = require('../controllers/homepage.controller');
 const createAuthMiddleware = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
 const { parseNestedFormData, validateProductCreation } = require('../validators/product.validator');
@@ -27,6 +28,21 @@ router.get('/compare', productController.compareProducts);
 
 //GET api/products/trending - Get trending products by popularity score
 router.get('/trending', productController.getTrendingProducts);
+
+//GET api/products/homepage - Public dynamic homepage content
+router.get('/homepage', homepageController.getPublicHomepage);
+
+//GET api/products/homepage/admin - Admin content management list
+router.get('/homepage/admin', createAuthMiddleware(['admin']), homepageController.getAdminHomepageSections);
+
+//POST api/products/homepage - Create homepage banner/product row (ADMIN ONLY)
+router.post('/homepage', createAuthMiddleware(['admin']), homepageController.createHomepageSection);
+
+//PATCH api/products/homepage/:id - Update homepage banner/product row (ADMIN ONLY)
+router.patch('/homepage/:id', createAuthMiddleware(['admin']), homepageController.updateHomepageSection);
+
+//DELETE api/products/homepage/:id - Delete homepage banner/product row (ADMIN ONLY)
+router.delete('/homepage/:id', createAuthMiddleware(['admin']), homepageController.deleteHomepageSection);
 
 //GET api/products/recently-viewed - Get authenticated user's recently viewed products
 router.get(

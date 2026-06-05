@@ -48,7 +48,7 @@ const registerUserValidation=[
 
     body('role')
     .optional()
-    .isIn(['user'])
+    .isIn(['user', 'admin'])
     .withMessage("Invalid role"),
 
     body('address.addressLine')

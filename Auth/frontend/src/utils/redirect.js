@@ -1,6 +1,7 @@
 const REDIRECT_KEY = 'vendorhub_post_auth_redirect';
 const PRODUCT_APP_URL = import.meta.env.VITE_PRODUCT_APP_URL || 'http://localhost:5174';
 const SELLER_DASHBOARD_URL = import.meta.env.VITE_SELLER_DASHBOARD_URL || `${PRODUCT_APP_URL}/seller-dashboard`;
+const ADMIN_DASHBOARD_URL = import.meta.env.VITE_ADMIN_DASHBOARD_URL || `${PRODUCT_APP_URL}/admin-dashboard`;
 
 const getRole = (accountOrRole) => {
   const role = typeof accountOrRole === 'string' ? accountOrRole : accountOrRole?.role;
@@ -9,13 +10,13 @@ const getRole = (accountOrRole) => {
 
 const isSellerRole = (accountOrRole) => {
   const role = getRole(accountOrRole);
-  return role === 'seller' || role === 'merchant' || role === 'admin';
+  return role === 'seller' || role === 'merchant';
 };
 
 const getAllowedOrigins = () => {
   const origins = new Set([window.location.origin]);
 
-  [PRODUCT_APP_URL, SELLER_DASHBOARD_URL].forEach((url) => {
+  [PRODUCT_APP_URL, SELLER_DASHBOARD_URL, ADMIN_DASHBOARD_URL].forEach((url) => {
     try {
       origins.add(new URL(url, window.location.origin).origin);
     } catch {
@@ -51,9 +52,11 @@ export const consumeRedirect = () => {
   return redirect || '';
 };
 
-export const getDefaultPostAuthUrl = (accountOrRole) => (
-  isSellerRole(accountOrRole) ? SELLER_DASHBOARD_URL : PRODUCT_APP_URL
-);
+export const getDefaultPostAuthUrl = (accountOrRole) => {
+  const role = getRole(accountOrRole);
+  if (role === 'admin') return ADMIN_DASHBOARD_URL;
+  return isSellerRole(accountOrRole) ? SELLER_DASHBOARD_URL : PRODUCT_APP_URL;
+};
 
 export const goToUrl = (navigate, targetUrl) => {
   const url = new URL(targetUrl, window.location.origin);
@@ -75,6 +78,7 @@ const appendAccessToken = (targetUrl, accessToken) => {
 };
 
 export const goAfterAuth = (navigate, accountOrRole = 'user', accessToken = '') => {
-  consumeRedirect();
-  goToUrl(navigate, appendAccessToken(getDefaultPostAuthUrl(accountOrRole), accessToken));
+  const rememberedRedirect = consumeRedirect();
+  const targetUrl = rememberedRedirect || getDefaultPostAuthUrl(accountOrRole);
+  goToUrl(navigate, appendAccessToken(targetUrl, accessToken));
 };
