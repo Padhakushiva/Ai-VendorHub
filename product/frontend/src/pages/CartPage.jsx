@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Minus, PackageCheck, Plus, RefreshCw, ShoppingBag, Sparkles, Trash2, XCircle } from 'lucide-react';
+import { ArrowRight, Bot, CheckCircle2, Loader2, Minus, PackageCheck, Plus, RefreshCw, Send, ShoppingBag, Sparkles, Trash2, Wand2, XCircle } from 'lucide-react';
 import { useAuthBridge } from '../context/AuthBridgeContext';
 import { useCart } from '../context/CartContext';
+import { aiApi } from '../services/aiApi';
 
 const formatPrice = (amount, currency = 'INR') => {
   try {
@@ -33,6 +34,156 @@ const QuantityButton = ({ children, onClick, disabled }) => (
     {children}
   </button>
 );
+
+const makeCartAISessionId = () => `cart-ai-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+const stripMarkdown = (text = '') => (
+  text
+    .replace(/\*\*/g, '')
+    .replace(/^\s*[*-]\s+/gm, '')
+    .trim()
+);
+
+const productImage = (product) => {
+  const image = product?.images?.[0];
+  if (typeof image === 'string') return image;
+  return image?.thumbnail || image?.url || product?.image || '';
+};
+
+const cartPromptContext = (cart) => {
+  const items = cart.items.map((item) => (
+    `${item.title} qty ${item.quantity}, price ${formatPrice(item.unitPrice.amount, item.unitPrice.currency)}, line total ${formatPrice(item.lineTotal.amount, item.lineTotal.currency)}`
+  )).join('; ');
+
+  return `Current cart: ${items || 'empty cart'}. Cart total: ${formatPrice(cart.totals?.total, cart.totals?.currency)}. Reply like a cart checkout assistant in 2-3 short lines. If suggesting products, return product cards from catalog.`;
+};
+
+function CartAIAssistant({ cart }) {
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState({
+    text: 'Ask AI to review value, suggest add-ons, or find better product options before checkout.',
+    products: [],
+  });
+  const sessionId = useRef(makeCartAISessionId());
+
+  const cartTotal = Number(cart.totals?.total || 0);
+  const quickActions = [
+    'Review my cart before checkout',
+    'Which item is best value?',
+    'Suggest useful add-ons for this cart',
+    cartTotal > 0 ? `Find upgrades under ${Math.ceil(cartTotal * 1.25)}` : 'Suggest a starter cart under 50000',
+  ];
+
+  const askCartAI = async (question) => {
+    const cleanQuestion = question.trim();
+    if (!cleanQuestion || loading) return;
+
+    try {
+      setLoading(true);
+      setInput('');
+      const response = await aiApi.post('/chat', {
+        sessionId: sessionId.current,
+        message: `${cleanQuestion}\n\n${cartPromptContext(cart)}`,
+      });
+      setResult({
+        text: stripMarkdown(response.data?.reply || response.data?.message || 'AI model unavailable'),
+        products: Array.isArray(response.data?.products) ? response.data.products.slice(0, 3) : [],
+      });
+    } catch (error) {
+      setResult({
+        text: error.response?.data?.message || 'AI model unavailable',
+        products: [],
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-[28px] border border-white/55 bg-[linear-gradient(135deg,rgba(20,20,20,0.96),rgba(0,107,79,0.86))] p-4 text-white shadow-[0_22px_60px_rgba(0,0,0,0.16)] backdrop-blur-xl">
+      <div className="flex items-start gap-3">
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-stone-950">
+          <Bot className="h-5 w-5" />
+        </div>
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-200">Cart AI</p>
+          <h3 className="text-xl font-black">Checkout assistant</h3>
+          <p className="mt-1 text-xs font-bold leading-5 text-white/65">Gemini reviews your cart and can suggest real catalog products.</p>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-white/15 bg-white/10 p-3 text-sm font-bold leading-6 text-white/85">
+        {loading ? (
+          <span className="inline-flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            AI checking your cart...
+          </span>
+        ) : result.text}
+      </div>
+
+      {result.products.length > 0 && (
+        <div className="mt-3 grid gap-2">
+          {result.products.map((product) => (
+            <Link
+              key={product._id || product.id || product.title}
+              to={`/product/${product._id || product.id}`}
+              className="flex gap-3 rounded-2xl border border-white/15 bg-white/95 p-2 text-stone-950 transition hover:-translate-y-0.5"
+            >
+              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-stone-100">
+                {productImage(product) ? (
+                  <img src={productImage(product)} alt={product.title} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="grid h-full w-full place-items-center text-stone-400">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-black">{product.title}</p>
+                <p className="text-xs font-bold text-stone-500">{product.category || 'Recommended'}</p>
+                <p className="mt-1 text-sm font-black">{formatPrice(product.price?.amount, product.price?.currency)}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-4 grid gap-2">
+        {quickActions.map((action) => (
+          <button
+            key={action}
+            type="button"
+            disabled={loading}
+            onClick={() => askCartAI(action)}
+            className="inline-flex min-h-11 items-center justify-between gap-3 rounded-2xl border border-white/15 bg-white/10 px-3 py-2 text-left text-xs font-black text-white transition hover:bg-white/18 disabled:opacity-50"
+          >
+            {action}
+            <Wand2 className="h-4 w-4 shrink-0 text-amber-200" />
+          </button>
+        ))}
+      </div>
+
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          askCartAI(input);
+        }}
+        className="mt-3 flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 p-2"
+      >
+        <input
+          value={input}
+          onChange={(event) => setInput(event.target.value)}
+          placeholder="Ask about this cart..."
+          className="h-10 min-w-0 flex-1 bg-transparent px-2 text-sm font-bold text-white outline-none placeholder:text-white/45"
+        />
+        <button type="submit" disabled={loading || !input.trim()} className="grid h-10 w-10 place-items-center rounded-xl bg-white text-stone-950 disabled:opacity-50">
+          <Send className="h-4 w-4" />
+        </button>
+      </form>
+    </div>
+  );
+}
 
 function CartItem({ item }) {
   const { busyItemId, removeItem, saveForLater, updateItem } = useCart();
@@ -224,55 +375,59 @@ export default function CartPage() {
               )}
             </div>
 
-            <aside className="h-fit rounded-[30px] border border-stone-200 bg-white p-5 shadow-sm lg:sticky lg:top-32">
-              <div className="rounded-[24px] border border-stone-200 bg-amber-50 p-5 text-stone-950">
-                <p className="text-xs font-black uppercase tracking-[0.18em]">Order summary</p>
-                <h2 className="mt-2 text-3xl font-black">Cart total</h2>
-              </div>
-              <div className="mt-5 space-y-4">
-                <SummaryRow label="Subtotal" value={formatPrice(totals.subtotal, totals.currency)} />
-                <SummaryRow label="Discount" value={formatPrice(totals.discount, totals.currency)} />
-                <SummaryRow label="GST / tax" value={formatPrice(totals.tax, totals.currency)} />
-                <SummaryRow label="Shipping" value={Number(totals.shipping || 0) === 0 ? 'Free' : formatPrice(totals.shipping, totals.currency)} />
-                <div className="h-px bg-black/15" />
-                <SummaryRow label="Total" value={formatPrice(totals.total, totals.currency)} strong />
-              </div>
+            <aside className="space-y-5 lg:sticky lg:top-32">
+              <CartAIAssistant cart={cart} />
 
-              {cart.cartIssues.length > 0 && (
-                <div className="mt-5 rounded-[20px] border border-stone-200 bg-rose-50 p-4">
-                  <p className="font-black text-stone-950">Needs review</p>
-                  <p className="mt-1 text-sm font-bold text-stone-600">{cart.cartIssues.length} cart issue found by validation.</p>
+              <div className="h-fit rounded-[30px] border border-stone-200 bg-white p-5 shadow-sm">
+                <div className="rounded-[24px] border border-stone-200 bg-amber-50 p-5 text-stone-950">
+                  <p className="text-xs font-black uppercase tracking-[0.18em]">Order summary</p>
+                  <h2 className="mt-2 text-3xl font-black">Cart total</h2>
                 </div>
-              )}
+                <div className="mt-5 space-y-4">
+                  <SummaryRow label="Subtotal" value={formatPrice(totals.subtotal, totals.currency)} />
+                  <SummaryRow label="Discount" value={formatPrice(totals.discount, totals.currency)} />
+                  <SummaryRow label="GST / tax" value={formatPrice(totals.tax, totals.currency)} />
+                  <SummaryRow label="Shipping" value={Number(totals.shipping || 0) === 0 ? 'Free' : formatPrice(totals.shipping, totals.currency)} />
+                  <div className="h-px bg-black/15" />
+                  <SummaryRow label="Total" value={formatPrice(totals.total, totals.currency)} strong />
+                </div>
 
-              <div className="mt-6 grid gap-3">
-                <Link
-                  to="/checkout"
-                  className={`inline-flex h-12 items-center justify-center gap-2 rounded-full border border-stone-200 bg-emerald-700 px-5 text-sm font-black text-stone-950 shadow-sm transition hover:-translate-y-0.5 ${
-                    loading || cart.items.length === 0 ? 'pointer-events-none opacity-50' : ''
-                  }`}
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Checkout
-                </Link>
-                <button
-                  type="button"
-                  disabled={loading || cart.items.length === 0}
-                  onClick={validateCart}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-stone-200 bg-blue-50 px-5 text-sm font-black text-stone-950 shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Validate cart
-                </button>
-                <button
-                  type="button"
-                  disabled={loading || cart.items.length === 0}
-                  onClick={clearCart}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-stone-200 bg-white px-5 text-sm font-black text-stone-950 shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Clear cart
-                </button>
+                {cart.cartIssues.length > 0 && (
+                  <div className="mt-5 rounded-[20px] border border-stone-200 bg-rose-50 p-4">
+                    <p className="font-black text-stone-950">Needs review</p>
+                    <p className="mt-1 text-sm font-bold text-stone-600">{cart.cartIssues.length} cart issue found by validation.</p>
+                  </div>
+                )}
+
+                <div className="mt-6 grid gap-3">
+                  <Link
+                    to="/checkout"
+                    className={`inline-flex h-12 items-center justify-center gap-2 rounded-full border border-stone-200 bg-emerald-700 px-5 text-sm font-black text-stone-950 shadow-sm transition hover:-translate-y-0.5 ${
+                      loading || cart.items.length === 0 ? 'pointer-events-none opacity-50' : ''
+                    }`}
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Checkout
+                  </Link>
+                  <button
+                    type="button"
+                    disabled={loading || cart.items.length === 0}
+                    onClick={validateCart}
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-stone-200 bg-blue-50 px-5 text-sm font-black text-stone-950 shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Validate cart
+                  </button>
+                  <button
+                    type="button"
+                    disabled={loading || cart.items.length === 0}
+                    onClick={clearCart}
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-stone-200 bg-white px-5 text-sm font-black text-stone-950 shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Clear cart
+                  </button>
+                </div>
               </div>
             </aside>
           </div>

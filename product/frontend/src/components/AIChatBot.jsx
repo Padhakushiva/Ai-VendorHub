@@ -1,13 +1,68 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, Loader, Send, Sparkles, X } from 'lucide-react';
 
-const quickPrompts = [
-  'Suggest best products under 50000',
-  'Which product is best value?',
-  'Recommend electronics for me',
-];
-
 const makeSessionId = () => `product-ui-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+const stripMarkdown = (text = '') => (
+  text
+    .replace(/\*\*/g, '')
+    .replace(/^\s*[*-]\s+/gm, '')
+    .trim()
+);
+
+const productImage = (product) => {
+  const image = product?.images?.[0];
+  if (typeof image === 'string') return image;
+  return image?.thumbnail || image?.url || product?.image || '';
+};
+
+const productPrice = (product) => {
+  const amount = Number(product?.price?.amount ?? product?.priceAmount ?? 0);
+  const currency = product?.price?.currency || product?.currency || 'INR';
+  try {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${currency} ${amount}`;
+  }
+};
+
+const productAmount = (product) => Number(product?.price?.amount ?? product?.priceAmount ?? 0);
+
+const uniqueValues = (values = []) => (
+  [...new Set(values.map((value) => `${value || ''}`.trim()).filter(Boolean))]
+);
+
+const buildQuickPrompts = (products = [], messages = []) => {
+  const latestAssistantProducts = [...messages]
+    .reverse()
+    .find((item) => item.role === 'assistant' && item.products?.length)?.products || [];
+  const sourceProducts = latestAssistantProducts.length ? latestAssistantProducts : products;
+  const availableProducts = sourceProducts.filter((product) => (product.stock ?? 1) > 0);
+  const productsToUse = availableProducts.length ? availableProducts : sourceProducts;
+  const categories = uniqueValues(productsToUse.map((product) => product.category));
+  const sortedByPrice = [...productsToUse].filter((product) => productAmount(product) > 0).sort((a, b) => productAmount(a) - productAmount(b));
+  const lowestProduct = sortedByPrice[0];
+  const premiumProduct = sortedByPrice[sortedByPrice.length - 1];
+  const firstProduct = productsToUse[0];
+  const secondProduct = productsToUse[1];
+  const prompts = [];
+
+  if (latestAssistantProducts.length) {
+    if (firstProduct && secondProduct) prompts.push(`Compare ${firstProduct.title} and ${secondProduct.title}`);
+    if (firstProduct) prompts.push(`Show similar products to ${firstProduct.title}`);
+    prompts.push('Which one is the best value from these?');
+  } else {
+    if (categories[0]) prompts.push(`Recommend best ${categories[0]} for me`);
+    if (lowestProduct) prompts.push(`Find products under ${Math.ceil(productAmount(lowestProduct) * 1.25)}`);
+    if (premiumProduct) prompts.push(`Is ${premiumProduct.title} worth buying?`);
+  }
+
+  return uniqueValues(prompts).slice(0, 3);
+};
 
 export default function AIChatBot({ products = [] }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,14 +75,7 @@ export default function AIChatBot({ products = [] }) {
     },
   ]);
   const sessionId = useRef(makeSessionId());
-
-  const productContext = useMemo(() => {
-    if (!products.length) return 'No products are currently loaded from Product Service.';
-    return products
-      .slice(0, 5)
-      .map((product) => `${product.title} (${product.category || 'General'}, ${product.currency || 'INR'} ${product.priceAmount || 0}, stock ${product.stock || 0})`)
-      .join('; ');
-  }, [products]);
+  const quickPrompts = useMemo(() => buildQuickPrompts(products, messages), [products, messages]);
 
   const sendMessage = async (prompt = message) => {
     const cleanPrompt = prompt.trim();
@@ -48,7 +96,7 @@ export default function AIChatBot({ products = [] }) {
         },
         body: JSON.stringify({
           sessionId: sessionId.current,
-          message: `${cleanPrompt}\n\nCurrent loaded Product Service catalog: ${productContext}`,
+          message: cleanPrompt,
         }),
       });
       const rawText = await response.text();
@@ -60,7 +108,8 @@ export default function AIChatBot({ products = [] }) {
           message: rawText || 'AI service returned an unreadable response.',
         };
       }
-      const reply = data.response || data.message || data.summary || 'AI response received, but no readable message was returned.';
+      const reply = stripMarkdown(data.reply || data.response || data.summary || data.message || 'AI response received, but no readable message was returned.');
+      const recommendedProducts = Array.isArray(data.products) ? data.products.slice(0, 5) : [];
 
       const authHint = response.status === 401
         ? 'Please login first, then I can use your account context for AI recommendations.'
@@ -68,6 +117,7 @@ export default function AIChatBot({ products = [] }) {
       setMessages((prev) => [...prev, {
         role: 'assistant',
         text: response.ok ? reply : `${reply} ${authHint}`,
+        products: response.ok ? recommendedProducts : [],
       }]);
     } catch (error) {
       setMessages((prev) => [...prev, {
@@ -129,12 +179,45 @@ export default function AIChatBot({ products = [] }) {
             <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
               {messages.map((item, index) => (
                 <div key={`${item.role}-${index}`} className={`flex ${item.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[84%] rounded-2xl px-4 py-3 text-sm font-semibold leading-6 ${
-                    item.role === 'user'
-                      ? 'bg-stone-950 text-white'
-                      : 'border border-stone-200 bg-stone-50 text-stone-700'
-                  }`}>
-                    {item.text}
+                  <div className={`max-w-[92%] ${item.role === 'assistant' && item.products?.length ? 'w-full' : ''}`}>
+                    <div className={`whitespace-pre-line rounded-2xl px-4 py-3 text-sm font-semibold leading-6 ${
+                      item.role === 'user'
+                        ? 'bg-stone-950 text-white'
+                        : 'border border-stone-200 bg-stone-50 text-stone-700'
+                    }`}>
+                      {item.text}
+                    </div>
+                    {item.role === 'assistant' && item.products?.length > 0 && (
+                      <div className="mt-3 grid gap-2">
+                        {item.products.map((product) => (
+                          <a
+                            key={product._id || product.id || product.title}
+                            href={`/product/${product._id || product.id}`}
+                            className="group flex gap-3 rounded-2xl border border-stone-200 bg-white p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
+                          >
+                            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-stone-100">
+                              {productImage(product) ? (
+                                <img src={productImage(product)} alt={product.title} className="h-full w-full object-cover" />
+                              ) : (
+                                <div className="grid h-full w-full place-items-center text-stone-400">
+                                  <Sparkles className="h-5 w-5" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-black text-stone-950 group-hover:text-emerald-800">{product.title}</p>
+                              <p className="mt-1 text-xs font-bold text-stone-500">{product.category || 'General'}</p>
+                              <div className="mt-2 flex items-center justify-between gap-2">
+                                <span className="text-sm font-black text-stone-950">{productPrice(product)}</span>
+                                <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black uppercase text-emerald-700">
+                                  Stock {product.stock || 0}
+                                </span>
+                              </div>
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

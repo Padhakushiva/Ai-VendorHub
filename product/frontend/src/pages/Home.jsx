@@ -3,12 +3,10 @@ import {
   AlertCircle,
   BadgeCheck,
   BadgePercent,
-  Bot,
   Boxes,
   Cable,
   Camera,
   Clock,
-  Eye,
   Filter,
   HardDrive,
   Headphones,
@@ -28,7 +26,6 @@ import {
 import { useProduct } from '../context/ProductContext';
 import ProductCard from '../components/ProductCard';
 import FilterSidebar from '../components/FilterSidebar';
-import AIControlCenter from '../components/AIControlCenter';
 import AIChatBot from '../components/AIChatBot';
 import AISmartFilterBanner from '../components/AISmartFilterBanner';
 import CategoryFilterBar from '../components/CategoryFilterBar';
@@ -164,9 +161,8 @@ const demoProducts = [
 ];
 
 export default function Home() {
-  const { products, trendingProducts, recentlyViewed, homepageSections, loading, error, filters, updateFilters, resetFilters } = useProduct();
+  const { products, trendingProducts, homepageSections, loading, error, filters, updateFilters, resetFilters } = useProduct();
   const [showFilters, setShowFilters] = useState(false);
-  const [showAIInsights, setShowAIInsights] = useState(false);
   const [heroIndex, setHeroIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -183,10 +179,7 @@ export default function Home() {
     return [...new Set(values)];
   }, [products]);
 
-  const aiInsights = useMemo(() => buildCatalogInsights(products), [products]);
-  const featuredProducts = (trendingProducts.length ? trendingProducts : products).slice(0, 4);
   const suggestions = useMemo(() => buildAiProductSuggestions(products, searchQuery), [products, searchQuery]);
-  const personalized = useMemo(() => buildPersonalizedShelf(products, recentlyViewed, recentSearches), [products, recentlyViewed, recentSearches]);
   const activeStatus = error ? 'Service issue detected' : products.length ? 'Live Product Service' : 'Waiting for real products';
   const showcaseProducts = products.length ? products : demoProducts;
   const homepageByPlacement = useMemo(() => groupHomepageSections(homepageSections), [homepageSections]);
@@ -487,27 +480,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* AI Insights Modal */}
-        {showAIInsights && (
-          <div className="fixed inset-0 z-40 overflow-y-auto">
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowAIInsights(false)} />
-            <div className="relative z-50 mx-auto my-8 max-w-4xl rounded-3xl border border-[#635bff]/40 bg-gradient-to-br from-[#1a1a2e] via-[#16171f] to-[#0f1119] p-8 shadow-[0_25px_60px_rgba(0,0,0,0.5)]">
-              <button
-                onClick={() => setShowAIInsights(false)}
-                className="absolute right-6 top-6 grid h-10 w-10 place-items-center rounded-lg border border-white/10 text-[#aaa6ba] hover:bg-white/5"
-              >
-                <RotateCcw className="h-5 w-5" />
-              </button>
-              <AiCatalogPanel insights={aiInsights} products={products} featuredProducts={featuredProducts} onReset={resetFilters} />
-              {personalized.hasSignals && (
-                <div className="mt-8">
-                  <AIPersonalizedShelf personalized={personalized} onSearch={runProductSearch} />
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Products Grid */}
         <div className="min-w-0">
           {loading ? (
@@ -541,42 +513,11 @@ export default function Home() {
       {/* Filter Modal */}
       <FilterSidebar isOpen={showFilters} onClose={() => setShowFilters(false)} categories={categories} />
 
-      {/* AI Control Center - Floating Button */}
-      <AIControlCenter
-        onAIInsights={() => setShowAIInsights(true)}
-        onFilters={() => setShowFilters(true)}
-        aiActive={showAIInsights}
-        filterActive={showFilters}
-      />
-
       {/* AI Chat Bot */}
       <AIChatBot products={products} />
     </div>
   );
 }
-
-const buildCatalogInsights = (products) => {
-  const inStock = products.filter((product) => product.inStock);
-  const lowStock = products.filter((product) => product.lowStock);
-  const cheapest = [...products].sort((a, b) => a.priceAmount - b.priceAmount)[0];
-  const topRated = [...products].sort((a, b) => b.ratingAverage - a.ratingAverage)[0];
-  const categoryCounts = products.reduce((acc, product) => {
-    if (product.category) acc[product.category] = (acc[product.category] || 0) + 1;
-    return acc;
-  }, {});
-  const topCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0];
-
-  return {
-    inStockCount: inStock.length,
-    lowStockCount: lowStock.length,
-    cheapest,
-    topRated,
-    topCategory: topCategory ? `${topCategory[0]} (${topCategory[1]})` : 'No category yet',
-    summary: products.length
-      ? `${products.length} real products analyzed. ${inStock.length} in stock, ${lowStock.length} low-stock, top category ${topCategory?.[0] || 'not available'}.`
-      : 'AI insights will activate when Product Service returns products.',
-  };
-};
 
 const scoreProductForQuery = (product, query) => {
   const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
@@ -603,39 +544,6 @@ const buildAiProductSuggestions = (products, query) => {
     .sort((a, b) => b.score - a.score || b.product.ratingAverage - a.product.ratingAverage)
     .slice(0, 4)
     .map((item) => item.product);
-};
-
-const buildPersonalizedShelf = (products, recentlyViewed = [], recentSearches = []) => {
-  const signalText = [
-    ...recentSearches,
-    ...recentlyViewed.map((product) => `${product.title} ${product.category} ${product.brand}`),
-  ].join(' ');
-
-  const suggestedProducts = signalText
-    ? products
-      .map((product) => ({ product, score: scoreProductForQuery(product, signalText) }))
-      .filter((item) => item.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map((item) => item.product)
-    : products;
-
-  const categoryCounts = suggestedProducts.reduce((acc, product) => {
-    if (product.category) acc[product.category] = (acc[product.category] || 0) + 1;
-    return acc;
-  }, {});
-
-  const categories = Object.entries(categoryCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 4)
-    .map(([category, count]) => ({ category, count }));
-
-  return {
-    hasSignals: Boolean(recentSearches.length || recentlyViewed.length),
-    recentSearches,
-    viewed: recentlyViewed.slice(0, 3),
-    categories,
-    products: suggestedProducts.slice(0, 3),
-  };
 };
 
 const CATEGORY_TILE_THEMES = [
@@ -1375,109 +1283,5 @@ const ProductTileImage = ({ product, className = '' }) => (
         <ShoppingBag className="h-9 w-9 text-black" />
       </div>
     )}
-  </div>
-);
-
-const AIPersonalizedShelf = ({ personalized, onSearch }) => (
-  <section className="mt-5 rounded-2xl border border-white/10 bg-[#11131f] p-5">
-    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#635bff]/30 bg-[#635bff]/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#c8c3ff]">
-          <Eye className="h-3.5 w-3.5" />
-          AI based on your activity
-        </div>
-        <h3 className="text-xl font-black text-[#f1efff]">Recommended categories for you</h3>
-        <p className="mt-1 text-sm font-semibold text-[#aaa6ba]">
-          Recent searches aur viewed products se AI matching category lane bana raha hai.
-        </p>
-      </div>
-      {!personalized.hasSignals && (
-        <p className="rounded-xl border border-white/10 px-3 py-2 text-xs font-bold text-[#aaa6ba]">
-          Search ya product view karoge to yeh section personalize hoga.
-        </p>
-      )}
-    </div>
-
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {(personalized.categories.length ? personalized.categories : []).map((item) => (
-          <button
-            key={item.category}
-            type="button"
-            onClick={() => onSearch(item.category)}
-            className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left transition hover:border-[#8079ff]/40 hover:bg-white/[0.07]"
-          >
-            <p className="text-sm font-black text-[#f1efff]">{item.category}</p>
-            <p className="mt-1 text-xs font-bold text-[#aaa6ba]">{item.count} matched product{item.count === 1 ? '' : 's'}</p>
-          </button>
-        ))}
-        {!personalized.categories.length && (
-          <div className="rounded-2xl border border-dashed border-white/10 p-4 text-sm font-semibold text-[#aaa6ba] sm:col-span-2">
-            No category signal yet. Search a product or open any product detail.
-          </div>
-        )}
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
-        <p className="mb-3 text-sm font-black text-[#f1efff]">AI matched products</p>
-        <div className="space-y-2">
-          {personalized.products.map((product) => (
-            <a key={product.id} href={`/product/${product.id}`} className="block rounded-xl bg-white/5 px-3 py-2 text-sm font-bold text-[#d7d2ff] transition hover:bg-white/10">
-              {product.title}
-            </a>
-          ))}
-          {!personalized.products.length && (
-            <p className="text-sm font-semibold leading-6 text-[#aaa6ba]">No product signal yet.</p>
-          )}
-        </div>
-      </div>
-    </div>
-  </section>
-);
-
-const AiCatalogPanel = ({ insights, products, featuredProducts, onReset }) => (
-  <section className="rounded-2xl border border-[#635bff]/25 bg-[linear-gradient(135deg,rgba(99,91,255,0.14),rgba(17,19,31,0.92))] p-5">
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
-      <div>
-        <div className="mb-3 flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#635bff]/20 text-[#d8d4ff]">
-            <Bot className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#aaa5ff]">AI Catalog Assistant</p>
-            <h3 className="text-xl font-black text-[#f1efff]">Live product insights</h3>
-          </div>
-        </div>
-        <p className="max-w-2xl text-sm font-semibold leading-6 text-[#c9c5dc]">{insights.summary}</p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <InsightChip label="Best value" value={insights.cheapest?.title || 'Waiting'} />
-          <InsightChip label="Top rated" value={insights.topRated?.title || 'Waiting'} />
-          <InsightChip label="Top category" value={insights.topCategory} />
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-sm font-black text-[#f1efff]">AI picks from real data</p>
-          <button type="button" onClick={onReset} className="text-xs font-black text-[#c8c3ff]">Reset</button>
-        </div>
-        <div className="space-y-2">
-          {featuredProducts.length ? featuredProducts.slice(0, 3).map((product) => (
-            <a key={product.id} href={`/product/${product.id}`} className="block rounded-xl bg-white/5 px-3 py-2 text-sm font-bold text-[#d7d2ff] transition hover:bg-white/10">
-              {product.title}
-            </a>
-          )) : (
-            <p className="text-sm font-semibold leading-6 text-[#aaa6ba]">No real product available for AI picking yet.</p>
-          )}
-        </div>
-      </div>
-    </div>
-  </section>
-);
-
-const InsightChip = ({ label, value }) => (
-  <div className="min-w-0 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
-    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8d88b2]">{label}</p>
-    <p className="mt-1 truncate text-sm font-black text-[#f1efff]">{value}</p>
   </div>
 );

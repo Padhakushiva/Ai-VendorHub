@@ -106,8 +106,10 @@ class ConversationalShoppingService {
       // Fallback: local query parser
       if (!intent) {
         const parsed = parseQuery(message);
+        const lowerMessage = message.toLowerCase();
+        const isRecommendationRequest = /\b(suggest|recommend|best|top|value|worth|pick)\b/.test(lowerMessage);
         intent = {
-          type: parsed.keywords.length > 0 ? "search" : "info",
+          type: isRecommendationRequest ? "recommend" : (parsed.keywords.length > 0 ? "search" : "info"),
           keywords: parsed.keywords,
           maxBudget: parsed.priceRange?.max || null,
           minBudget: parsed.priceRange?.min || null,
@@ -295,17 +297,45 @@ class ConversationalShoppingService {
         return `I couldn't find exactly what you were looking for ("${message}").\n\nHowever, we do have some other great products you might like, such as the ${formattedProducts[0].title}. Would you like to explore these? 😊`;
       }
 
-      const priceRange =
-        formattedProducts.length > 1
-          ? ` ranging from ₹${Math.min(...formattedProducts.map((p) => p.price?.amount || 0))} to ₹${Math.max(...formattedProducts.map((p) => p.price?.amount || 0))}`
-          : ` at ₹${formattedProducts[0].price?.amount || 0}`;
+      const sortedProducts = [...formattedProducts]
+        .filter((product) => product.inStock)
+        .sort((a, b) => {
+          if (intent.sortBy === "price_desc") return (b.price?.amount || 0) - (a.price?.amount || 0);
+          if (intent.sortBy === "price_asc") return (a.price?.amount || 0) - (b.price?.amount || 0);
+          return (b.price?.amount || 0) - (a.price?.amount || 0);
+        })
+        .slice(0, 5);
 
-      return intent.type === "recommend"
-        ? `Great choice! Here are my top recommendations${priceRange}. All products are in stock and ready to ship! 🎯`
-        : `Found ${formattedProducts.length} products${priceRange}. Here's what I found for you! 🛍️`;
+      const productsToShow = sortedProducts.length ? sortedProducts : formattedProducts.slice(0, 5);
+      const budgetText = intent.maxBudget ? ` under ₹${intent.maxBudget}` : "";
+      const lines = productsToShow.map((product, index) => {
+        const price = product.price?.amount || 0;
+        const category = product.category || "General";
+        const stock = product.stock || 0;
+        const reason = this._recommendationReason(product, index);
+        return `${index + 1}. ${product.title} - ₹${price.toLocaleString("en-IN")}\n   ${reason} Category: ${category}. Stock: ${stock}.`;
+      });
+      const topPick = productsToShow[0];
+      const topPickLine = topPick
+        ? `\n\nMy top pick is ${topPick.title} because it gives the strongest overall option${budgetText}.`
+        : "";
+
+      return `Here are the best products${budgetText}:\n\n${lines.join("\n\n")}${topPickLine}`;
     }
     
     return `I couldn't find products for "${message}". Try different keywords or adjust your budget. I'm here to help! 😊`;
+  }
+
+  _recommendationReason(product, index) {
+    const title = `${product.title || ""} ${product.category || ""}`.toLowerCase();
+    if (title.includes("purifier")) return "Best for improving home air quality and daily comfort.";
+    if (title.includes("ssd") || title.includes("storage")) return "Best for fast storage, backups, and heavy file use.";
+    if (title.includes("keyboard")) return "Best for coding, gaming, and productivity setups.";
+    if (title.includes("assistant") || title.includes("smart home")) return "Best for smart-home control on a budget.";
+    if (title.includes("lamp")) return "Best as an affordable desk accessory with practical lighting.";
+    return index === 0
+      ? "Best premium pick from the current catalog."
+      : "Good option based on price, stock, and category fit.";
   }
 }
 
