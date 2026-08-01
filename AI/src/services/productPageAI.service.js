@@ -13,7 +13,7 @@ class ProductPageAIService {
   constructor() {
     this.model = process.env.GOOGLE_API_KEY
       ? new ChatGoogleGenerativeAI({
-          model: process.env.AI_MODEL || "gemini-2.5-flash",
+          model: process.env.AI_MODEL || "gemini-flash-latest",
           temperature: 0.35,
           apiKey: process.env.GOOGLE_API_KEY,
           maxOutputTokens: 1200,
@@ -53,9 +53,13 @@ class ProductPageAIService {
         product?.brand ? `Brand: ${product.brand}` : "Brand details not available",
         reviewSummary?.summary?.overallSentiment ? `Review sentiment: ${reviewSummary.summary.overallSentiment}` : "Review summary depends on available reviews",
       ],
-      buyingAdvice: stock > 0
-        ? "This product is currently available. Check similar products and reviews before final purchase."
-        : "This product appears out of stock. Consider similar available products.",
+      insightBoxes: {
+        shopperAppeal: "Curated marketplace product with seller-backed availability.",
+        buyingNote: stock > 0
+          ? "This product is currently available. Check similar products and reviews before final purchase."
+          : "This product appears out of stock. Consider similar available products.",
+        skuAndSeller: `SKU: ${product?.sku || 'Not provided'} · Seller: ${product?.seller?.name || product?.sellerName || 'VendorHub seller'}`
+      },
       possibleConcerns: [
         ...(stock <= 0 ? ["Product is currently out of stock"] : []),
         ...(!product?.images?.length ? ["Product images are limited or unavailable"] : []),

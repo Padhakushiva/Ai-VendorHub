@@ -1,0 +1,64 @@
+
+> seller_dashboard@1.0.0 start
+> node server.js
+
+◇ injected env (11) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Dashboard Service is running at 3007
+Connected to RabbitMQ
+Connected to MongoDB
+(node:52803) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Error processing queue ORDER_SELLER_DASHBOARD.ORDER_CREATED: MongoServerError: Updating the path '_id' would create a conflict at '_id'
+    at Connection.sendCommand (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/node_modules/mongodb/lib/cmap/connection.js:320:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Connection.command (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/node_modules/mongodb/lib/cmap/connection.js:347:26)
+    at async Server.command (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/node_modules/mongodb/lib/sdam/server.js:208:29)
+    at async executeOperationWithRetries (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/node_modules/mongodb/lib/operations/execute_operation.js:193:32)
+    at async executeOperation (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/node_modules/mongodb/lib/operations/execute_operation.js:83:16)
+    at async Collection.findOneAndUpdate (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/node_modules/mongodb/lib/collection.js:544:16)
+    at async model.Query._findOneAndUpdate (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/node_modules/mongoose/lib/query.js:3621:13)
+    at async model.Query.exec (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/node_modules/mongoose/lib/query.js:4797:63)
+    at async upsertOrder (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/src/Broker/listner.js:86:24) {
+  errorLabelSet: Set(0) {},
+  errorResponse: {
+    ok: 0,
+    errmsg: "Updating the path '_id' would create a conflict at '_id'",
+    code: 40,
+    codeName: 'ConflictingUpdateOperators',
+    '$clusterTime': {
+      clusterTime: new Timestamp({ t: 1785396146, i: 6 }),
+      signature: [Object]
+    },
+    operationTime: new Timestamp({ t: 1785396146, i: 6 })
+  },
+  ok: 0,
+  code: 40,
+  codeName: 'ConflictingUpdateOperators',
+  '$clusterTime': {
+    clusterTime: new Timestamp({ t: 1785396146, i: 6 }),
+    signature: {
+      hash: Binary.createFromBase64('+bj4477wEtmqCCLqc7O6vx1MSvk=', 0),
+      keyId: new Long('7631253747858931713')
+    }
+  },
+  operationTime: new Timestamp({ t: 1785396146, i: 6 })
+}
+node:events:487
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: Heartbeat timeout
+    at Heart.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/node_modules/amqplib/lib/connection.js:357:23)
+    at Heart.emit (node:events:509:28)
+    at Heart.runHeartbeat (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/node_modules/amqplib/lib/heartbeat.js:81:19)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Emitted 'error' event on ChannelModel instance at:
+    at Connection.emit (node:events:509:28)
+    at Heart.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/node_modules/amqplib/lib/connection.js:358:14)
+    at Heart.emit (node:events:509:28)
+    at Heart.runHeartbeat (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Seller_dashboard/node_modules/amqplib/lib/heartbeat.js:81:19)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+
+Node.js v24.18.0

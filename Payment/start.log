@@ -1,0 +1,31 @@
+
+> payment@1.0.0 start
+> node server.js
+
+◇ injected env (8) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Payment Service is running at port 3004
+Connected to RabbitMQP
+Connected to MongoDB
+Error processing payment: {
+  statusCode: 401,
+  error: { code: 'BAD_REQUEST_ERROR', description: 'Authentication failed' }
+}
+node:events:487
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: Heartbeat timeout
+    at Heart.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Payment/node_modules/amqplib/lib/connection.js:357:23)
+    at Heart.emit (node:events:509:28)
+    at Heart.runHeartbeat (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Payment/node_modules/amqplib/lib/heartbeat.js:81:19)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Emitted 'error' event on ChannelModel instance at:
+    at Connection.emit (node:events:509:28)
+    at Heart.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Payment/node_modules/amqplib/lib/connection.js:358:14)
+    at Heart.emit (node:events:509:28)
+    at Heart.runHeartbeat (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/Payment/node_modules/amqplib/lib/heartbeat.js:81:19)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+
+Node.js v24.18.0

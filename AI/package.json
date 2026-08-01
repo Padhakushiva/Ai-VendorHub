@@ -5,15 +5,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "npx nodemon server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@langchain/core": "^1.1.42",
-    "@langchain/google-genai": "^0.0.21",
+    "@langchain/core": "^1.2.3",
+    "@langchain/google-genai": "^2.2.0",
     "@langchain/langgraph": "^1.2.9",
     "@langchain/openai": "^1.4.5",
     "axios": "^1.15.2",

@@ -1,7 +1,7 @@
 const https = require("https");
 
-const DEFAULT_MODEL = "gemini-2.5-flash";
-const DEFAULT_TIMEOUT_MS = 20000;
+const DEFAULT_MODEL = "gemini-flash-latest";
+const DEFAULT_TIMEOUT_MS = 30000;
 
 function parseGeminiText(payload) {
   const parts = payload?.candidates?.[0]?.content?.parts || [];

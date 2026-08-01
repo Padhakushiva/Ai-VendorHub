@@ -1,4 +1,3 @@
-const axios = require("axios");
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
 const { HumanMessage, SystemMessage, AIMessage } = require("@langchain/core/messages");
 const CircuitBreaker = require("../utils/circuitBreaker");
@@ -9,13 +8,17 @@ const { parseQuery } = require("../utils/queryParser");
 const { classifyMarketplaceRequest, buildScopeMessage } = require("../utils/domainGuard");
 const { getPrompt } = require("./prompt.service");
 const { extractJsonObject } = require("../utils/json");
+const aiMemoryService = require("./aiMemory.service");
+const productIntelligenceService = require("./productIntelligence.service");
+const chatActionService = require("./chatAction.service");
+const { isConnected } = require("../DB/db");
 
 class ConversationalShoppingService {
   constructor() {
     if (process.env.GOOGLE_API_KEY) {
       try {
         this.model = new ChatGoogleGenerativeAI({
-          model: "gemini-2.5-flash",
+          model: "gemini-flash-latest",
           temperature: 0.6,
           apiKey: process.env.GOOGLE_API_KEY,
           maxOutputTokens: 2048,
@@ -35,7 +38,6 @@ class ConversationalShoppingService {
       callTimeoutMs: 15000,
     });
 
-    this.sessions = new Map();
   }
 
   /**
@@ -49,6 +51,7 @@ class ConversationalShoppingService {
     const startTime = Date.now();
     try {
       console.log(`💬 Conversational Shopping: "${message}"`);
+      const userId = token ? "authenticated" : "anonymous";
 
       const classification = await classifyMarketplaceRequest(message);
       if (!classification.allowed) {
@@ -64,11 +67,13 @@ class ConversationalShoppingService {
         };
       }
 
-      const baseUrl = process.env.PRODUCT_SERVICE_URL || "http://localhost:3000";
-
-      // Initialize session history
       const currentSessionId = sessionId || 'default_session';
-      let history = this.sessions.get(currentSessionId) || [];
+      const decodedUserId = this._extractUserIdFromToken(token) || userId;
+      const [conversation, userMemory] = await Promise.all([
+        aiMemoryService.getConversation(decodedUserId, currentSessionId),
+        aiMemoryService.getUserMemory(decodedUserId),
+      ]);
+      let history = await aiMemoryService.getLangChainHistory(decodedUserId, currentSessionId);
 
       // Format history for intent extraction
       const historyText = history.map(m => {
@@ -108,8 +113,10 @@ class ConversationalShoppingService {
         const parsed = parseQuery(message);
         const lowerMessage = message.toLowerCase();
         const isRecommendationRequest = /\b(suggest|recommend|best|top|value|worth|pick)\b/.test(lowerMessage);
+        const detectedAction = chatActionService.detect(message);
         intent = {
           type: isRecommendationRequest ? "recommend" : (parsed.keywords.length > 0 ? "search" : "info"),
+          action: detectedAction || "none",
           keywords: parsed.keywords,
           maxBudget: parsed.priceRange?.max || null,
           minBudget: parsed.priceRange?.min || null,
@@ -117,124 +124,75 @@ class ConversationalShoppingService {
           sortBy: parsed.sortBy || "relevance"
         };
       }
+      if (!intent.action || intent.action === "none") {
+        intent.action = chatActionService.detect(message) || "none";
+      }
+      if (intent.action !== "none") {
+        intent.type = "action";
+      }
 
-      // Step 2: Fetch products based on intent (unless off_topic)
-      let products = [];
+      // Step 2: Fetch, semantically rank, and personalize products based on intent
       let formattedProducts = [];
+      let personalization = { hasSignals: false };
 
       if (intent.type !== "off_topic") {
-        const params = { limit: 10 };
-        if (intent.keywords && intent.keywords.length > 0) {
-          params.q = intent.keywords.join(" ");
-        }
-        if (intent.maxBudget) params.maxprice = intent.maxBudget;
-        if (intent.minBudget) params.minprice = intent.minBudget;
-        if (intent.category) params.category = intent.category;
-
-        let noMatchFoundLocally = false;
-
         try {
-          let response = await axios.get(`${baseUrl}/api/product`, {
-            params,
-            headers: { Authorization: `Bearer ${token}` },
-            timeout: 5000,
+          const ranked = await productIntelligenceService.rankProducts({
+            query: message,
+            intent,
+            token,
+            memory: userMemory,
           });
-          products = response.data.data || [];
-          
-          if (products.length === 0 && intent.category) {
-            console.log(`⚠️ No products found with keyword. Retrying with category "${intent.category}" only...`);
-            const fallbackParams = { limit: 10, category: intent.category };
-            if (intent.maxBudget) fallbackParams.maxPrice = intent.maxBudget;
-            if (intent.minBudget) fallbackParams.minPrice = intent.minBudget;
-            
-            response = await axios.get(`${baseUrl}/api/product`, {
-              params: fallbackParams,
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 5000,
-            });
-            products = response.data.data || [];
-          }
-          
-          let broadSearchUsed = false;
-          // SMART FALLBACK: If everything failed, fetch broadly and let the LLM filter semantically
-          if (products.length === 0) {
-            broadSearchUsed = true;
-            console.log(`⚠️ Still 0 products. Doing a broad search for local filtering...`);
-            const broadParams = { limit: 20 };
-            if (intent.maxBudget) broadParams.maxPrice = intent.maxBudget;
-            if (intent.minBudget) broadParams.minPrice = intent.minBudget;
-            
-            const broadResponse = await axios.get(`${baseUrl}/api/product`, {
-              params: broadParams,
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 5000,
-            });
-            products = broadResponse.data.data || [];
-          }
-
-          // In-memory smart filtering using synonyms
-          if (products.length > 0 && intent.keywords && intent.keywords.length > 0) {
-            const { expandSynonyms } = require("../utils/queryParser");
-            const targetWords = intent.keywords.flatMap(k => expandSynonyms(k));
-            
-            const matchedProducts = products.filter(p => {
-                const text = `${p.title} ${p.description} ${p.category} ${(p.tags||[]).join(' ')}`.toLowerCase();
-                return targetWords.some(w => text.includes(w.toLowerCase()));
-            });
-
-            if (matchedProducts.length > 0) {
-                products = matchedProducts; // We found actual matches
-            } else {
-                // No products match the requested keyword in our fallback searches
-                console.log(`⚠️ Fallback search yielded products, but none matched keywords: [${targetWords.join(', ')}]`);
-                noMatchFoundLocally = true;
-            }
-          }
-
-        } catch (err) {
-          console.error("❌ Product fetch error:", err.message);
-        }
-
-        // Pass this flag to formatting/fallback so we know it's a "did you mean" rather than a direct match
-        this.noMatchFoundLocally = noMatchFoundLocally;
-
-        // Filter: only in-stock products for recommendations
-        if (intent.type === "recommend") {
-          products = products.filter((p) => p.stock > 0);
-        }
-
-        // Sort based on intent
-        if (intent.sortBy === "price_asc") {
-          products.sort((a, b) => (a.price?.amount || 0) - (b.price?.amount || 0));
-        } else if (intent.sortBy === "price_desc") {
-          products.sort((a, b) => (b.price?.amount || 0) - (a.price?.amount || 0));
-        }
-
-        formattedProducts = products.slice(0, 10).map((p) => ({
+          personalization = ranked.personalization;
+          formattedProducts = ranked.products.slice(0, 10).map((p) => ({
           _id: p._id,
           title: p.title,
           price: p.price,
           stock: p.stock,
           category: p.category,
+          brand: p.brand,
           description: (p.description || "").substring(0, 120),
           images: p.images,
           inStock: (p.stock || 0) > 0,
+          aiScore: p.aiScore,
+          aiReasons: p.aiReasons,
+          aiScoreBreakdown: p.aiScoreBreakdown,
         }));
+        } catch (err) {
+          console.error("❌ Product intelligence error:", err.message);
+          formattedProducts = [];
+        }
       }
 
-      // Step 3: Generate conversational AI response
+      // Step 3: Execute product actions when requested
+      let actionResult = null;
+      if (intent.action && intent.action !== "none") {
+        actionResult = await chatActionService.execute({
+          type: intent.action,
+          message,
+          products: formattedProducts,
+          conversation,
+          token,
+        });
+      }
+
+      // Step 4: Generate conversational AI response
       let finalReply = "I couldn't process your request right now. Try again! 😊";
 
       if (this.model && featureFlags.isEnabled("LLM_ENABLED")) {
         try {
           const systemPrompt = getPrompt("conversationalReply", {
             intent,
+            memorySummary: userMemory.summary || "No stored preferences yet",
+            actionResult,
             products: formattedProducts.map(p => ({
               title: p.title,
               price: p.price?.amount,
               currency: p.price?.currency,
               description: p.description,
               inStock: p.inStock,
+              aiScore: p.aiScore,
+              reasons: p.aiReasons,
             })),
           });
 
@@ -253,31 +211,50 @@ class ConversationalShoppingService {
           finalReply = response.content;
           usedLLM = true;
 
-          // Save to history
-          history.push(new HumanMessage(message));
-          history.push(new AIMessage(finalReply));
-          
-          // Keep only last 10 messages to avoid context overflow
-          if (history.length > 10) history = history.slice(history.length - 10);
-          this.sessions.set(currentSessionId, history);
-
         } catch (err) {
           console.error("❌ Conversational response generation error:", err.message);
           // Fallback to basic string if LLM fails
-          finalReply = this._getFallbackReply(intent, formattedProducts, message);
+          finalReply = this._getFallbackReply(intent, formattedProducts, message, actionResult);
         }
       } else {
-        finalReply = this._getFallbackReply(intent, formattedProducts, message);
+        finalReply = this._getFallbackReply(intent, formattedProducts, message, actionResult);
       }
+
+      await aiMemoryService.saveTurn({
+        userId: decodedUserId,
+        sessionId: currentSessionId,
+        userMessage: message,
+        assistantReply: finalReply,
+        intent,
+        products: formattedProducts,
+        actions: actionResult ? [{ ...actionResult, at: new Date() }] : [],
+      });
+      const nextMemory = await aiMemoryService.learnFromTurn({
+        userId: decodedUserId,
+        message,
+        intent,
+        products: formattedProducts,
+        actionResults: actionResult ? [actionResult] : [],
+      });
 
       return {
         success: true,
         sessionId: currentSessionId,
+        userId: decodedUserId,
         message,
         intent,
         reply: finalReply,
+        action: actionResult,
         products: formattedProducts,
         totalFound: formattedProducts.length,
+        personalization,
+        memory: {
+          persisted: isConnected(),
+          summary: nextMemory.summary,
+          topCategories: (nextMemory.preferredCategories || []).slice(0, 5),
+          topTerms: (nextMemory.preferredTerms || []).slice(0, 8),
+          budget: nextMemory.budget,
+        },
         usedLLM,
         timestamp: new Date(),
       };
@@ -287,16 +264,29 @@ class ConversationalShoppingService {
     }
   }
 
-  _getFallbackReply(intent, formattedProducts, message) {
+  _extractUserIdFromToken(token) {
+    try {
+      if (!token) return null;
+      const jwt = require("jsonwebtoken");
+      const decoded = jwt.decode(token);
+      return decoded?.id || decoded?._id || decoded?.userId || decoded?.sub || null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  _getFallbackReply(intent, formattedProducts, message, actionResult = null) {
+    if (actionResult) {
+      return actionResult.success
+        ? actionResult.message
+        : `I found the product, but could not complete that action: ${actionResult.message}`;
+    }
+
     if (intent.type === "off_topic") {
       return "I'm your shopping assistant! I can help you find products, recommend items, or optimize your budget. What would you like to shop for today? 🛍️";
     }
     
     if (formattedProducts.length > 0) {
-      if (this.noMatchFoundLocally) {
-        return `I couldn't find exactly what you were looking for ("${message}").\n\nHowever, we do have some other great products you might like, such as the ${formattedProducts[0].title}. Would you like to explore these? 😊`;
-      }
-
       const sortedProducts = [...formattedProducts]
         .filter((product) => product.inStock)
         .sort((a, b) => {
@@ -312,12 +302,12 @@ class ConversationalShoppingService {
         const price = product.price?.amount || 0;
         const category = product.category || "General";
         const stock = product.stock || 0;
-        const reason = this._recommendationReason(product, index);
+        const reason = (product.aiReasons || [])[0] || this._recommendationReason(product, index);
         return `${index + 1}. ${product.title} - ₹${price.toLocaleString("en-IN")}\n   ${reason} Category: ${category}. Stock: ${stock}.`;
       });
       const topPick = productsToShow[0];
       const topPickLine = topPick
-        ? `\n\nMy top pick is ${topPick.title} because it gives the strongest overall option${budgetText}.`
+        ? `\n\nMy top pick is ${topPick.title} because ${(topPick.aiReasons || [])[0] || `it gives the strongest overall option${budgetText}`}.`
         : "";
 
       return `Here are the best products${budgetText}:\n\n${lines.join("\n\n")}${topPickLine}`;

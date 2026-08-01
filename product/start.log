@@ -1,0 +1,17 @@
+
+> product@1.0.0 start
+> node server.js
+
+◇ injected env (16) from .env // tip: ⌘ override existing { override: true }
+Product Server is running on port 3000
+Connected to RabbitMQP
+Connected to MongoDB
+Product cache connected to Redis
+Product cache Redis error: read EADDRNOTAVAIL
+Product cache connected to Redis
+Product cache Redis error: read EADDRNOTAVAIL
+Product cache connected to Redis
+RabbitMQ connection error. Product service will keep running: Heartbeat timeout
+RabbitMQ connection closed. Product events will retry on next publish.
+Product cache Redis error: read ETIMEDOUT
+Product cache connected to Redis

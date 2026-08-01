@@ -1,0 +1,284 @@
+
+> ai@1.0.0 dev
+> npx nodemon server.js
+
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node server.js`[39m
+◇ injected env (16) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+🚩 Feature Flags:
+   ✅ LLM_ENABLED: true
+   ✅ LLM_SEARCH_INTENT: true
+   ✅ LLM_DESCRIPTION_GENERATOR: true
+   ✅ LLM_CATEGORY_SUGGESTION: true
+   ✅ LLM_REVIEW_SUMMARY: true
+   ✅ LLM_AGENT_TOOLS: true
+   ✅ LLM_BACKGROUND_IMPROVEMENT: true
+✅ Ecommerce Agent: Gemini model initialized
+✅ Ecommerce Agent: Tools bound to model successfully
+📋 E-commerce Tools Ready:
+  ✅ Search Products
+  ✅ Get Recommendations
+  ✅ Similar Products
+✅ SimilarProductService: Gemini model initialized
+✅ ProductComparisonService: Gemini model initialized
+✅ SmartBudgetService: Gemini model initialized
+✅ MoodShoppingService: Gemini model initialized
+AI Service connected to MongoDB
+node:events:487
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3005
+    at Server.setupListenHandle [as _listen2] (node:net:2009:16)
+    at listenInCluster (node:net:2066:12)
+    at Server.listen (node:net:2171:7)
+    at /Users/shivachoudhry/Downloads/Ai-VendorHub-master/AI/server.js:13:12
+    at <anonymous>
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:2045:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3005
+}
+
+Node.js v24.18.0
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+◇ injected env (16) from .env // tip: ⌘ custom filepath { path: '/custom/pa🚩 Featur🚩 Feature Flags:
+   ✅ LLM_ENABLED: true
+   ✅ LLM_SEARCH_INTENT: true
+   ✅ LLM_DESCRIPTION_GENERATOR: true
+   ✅ LLM_CATEGORY_SUGGESTION: true
+   ✅ LLM_REVIEW_SUMMARY: true
+   ✅ LLM_AGENT_TOOLS: true
+   ✅ LLM_BACKGROUND_IMPROVE✅ Ecommer✅ Ecommerce Agent: Gemini model initialized
+✅ Ecommerce Agent: Tools bound to model successfully
+📋 E-commerce Tools Ready:
+  ✅ Search Products
+  ✅ Get Recommendations
+  ✅ Similar Products
+✅ SimilarProductService: Gemini model initialized
+✅ ProductComparisonService: Gemini model initialized
+✅ SmartBudgetService: Gemini model initialized
+✅ MoodShoppingService: Gemini model iAI Service coAI Service connectenode:events:487
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3005
+    at Server.setupListenHandle [as _listen2] (node:net:2009:16)
+    at listenInCluster (node:net:2066:12)
+    at Server.listen (node:net:2171:7)
+    at /Users/shivachoudhry/Downloads/Ai-VendorHub-master/AI/server.js:13:12
+    at <anonymous>
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:2045:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3005
+}
+
+Node.js v24.18.0
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m
+[32m[nodem[32m[nodemon] restarting due to chang[32m[nodemon] starting `node server.js`[39m
+◇ injecte◇ injected env (16) from .env // tip: ⌘ override existing { overri🚩 Feature Flags:
+   ✅ LLM_ENABLED: true
+   ✅ LLM_SEARCH_INTENT: true
+   ✅ LLM_DESCRIPTION_GENERATOR: true
+   ✅ LLM_CATEGORY_SUGGESTION: true
+   ✅ LLM_REVIEW_SUMMARY: true
+   ✅ LLM_AGENT_TOOLS: true
+   ✅ LLM_BACKGROUND_IMPROVEMENT: true
+✅ Ecommer✅ Ecommerce Agent: Gemini model i✅ Ecommer✅ Ecommerce Agent: Tools bound to model su📋 E-comm📋 E-commerce Tools Ready:
+  ✅ Search Products
+  ✅ Get Recommendations
+  ✅ Simila✅ Similar✅ SimilarProductService: Gemini model i✅ Product✅ ProductComparisonService: Gemini model i✅ SmartBu✅ SmartBudgetService: Gemini model i✅ MoodSho✅ MoodShoppingService: Gemini model iAI Service connected to MongoDB
+node:events:487
+      throw er; // Unhandle
+============================================================
+🤖 CHAT NODE: Processing query
+============================================================
+📝 Query: "Recommend best Electronic for me"
+🤖 Using Gemini with tool calling...
+⏱️ [Agent-LLM] Timeout (failure 1/3)
+⚠️ LLM tool calling failed: [Agent-LLM] Call timed out after 15000ms. Falling back to direct search.
+📋 Using direct product search (fallback path)
+🔑 Extracted keywords: [electronic]
+📡 Fetching from: http://localhost:3000/api/product?limit=10&q=electronic
+⚠️ Still 0 products. Doing a broad search for local filtering...
+✅ Found 3 products
+🤖 Fallback path: Attempting LLM natural reply...
+✅ Fallback path: LLM natural reply generated
+✅ Response ready
+[32m[nodem[32m[nodemon] restarting due to chang[32m[nodem[32m[nodemon] sta[32m[nodemon] st◇ injecte◇ injected env (◇ injected env (16) from .env // tip: ◈ e🚩 Feature Flags:
+   ✅ LLM_E🚩 Feature Flags:
+   ✅ LLM_ENABLED: true
+   ✅ LLM_SEARCH_INTENT: true
+   ✅ LLM_DESCRIPTION_GENERATOR: true
+   ✅ LLM_CATEGORY_SUGGESTION: true
+   ✅ LLM_REVIEW_SUMMARY: true
+   ✅ LLM_AGENT_TOOLS: true
+   ✅ L✅ Ecommerce Agent: Gemini model initialized
+✅ Ecommerce Agent: Tools bound to model successfully
+📋 E-commerce Tools Ready:
+  ✅ Search Products
+  ✅ Get Recommendations
+  ✅ Similar Products
+✅ SimilarProductService: Gemin✅ SimilarProductSe✅ ProductComparisonService: Ge✅ ProductComparisonSe✅ SmartBudgetService: Gemini m✅ SmartBudgetSe✅ MoodShoppingService: Gemini ✅ MoodShoppingSeAI Service connected to MongoDB
+node:events:487
+      throw er; // Unhandled 'error'[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+◇ injected env (16) from .env // tip: ⌘ override existing { override: true }
+🚩 Feature Flags:
+   ✅ LLM_ENABLED: true
+   ✅ LLM_SEARCH_INTENT: true
+   ✅ LLM_DESCRIPTION_GENERATOR: true
+   ✅ LLM_CATEGORY_SUGGESTION: true
+   ✅ LLM_REVIEW_SUMMARY: true
+   ✅ LLM_AGENT_TOOLS: true
+   ✅ LLM_BACKGROUND_IMPROVEMENT: true
+✅ Ecommerce Agent: Gemini model initialized
+✅ Ecommerce Agent: Tools bound to model successfully
+📋 E-commerce Tools Ready:
+  ✅ Search Products
+  ✅ Get Recommendations
+  ✅ Similar Products
+✅ SimilarProductService: Gemini model initialized
+✅ ProductComparisonService: Gemini model initialized
+✅ SmartBudgetService: Gemini model initialized
+✅ MoodShoppingService: Gemini model initialized
+AI Service connected to MongoDB
+AI Server is running on port 3005
+Gemini Error in generateDescription: Error: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash
+Please retry in 14.776988193s.
+    at IncomingMessage.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/AI/src/services/geminiRest.service.js:55:25)
+    at IncomingMessage.emit (node:events:521:24)
+    at endReadableNT (node:internal/streams/readable:1729:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'RESOURCE_EXHAUSTED',
+  statusCode: 429,
+  details: {
+    code: 429,
+    message: 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n' +
+      '* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\n' +
+      'Please retry in 14.776988193s.',
+    status: 'RESOURCE_EXHAUSTED',
+    details: [ [Object], [Object], [Object] ]
+  }
+}
+Gemini Error in generateDescription: Error: You exceeded your current quota, please check your plan and billing details. For m[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node se[32m[nodemon]◇ injected env (16) from .env // tip: ⌘ override existing { override: true }
+🚩 Feature Flags:
+   ✅ LLM_ENABLED: true
+   ✅ LLM_SEARCH_INTENT: true
+   ✅ LLM_DESCRIPTION_GENER   ✅ LLM_   ✅ LLM_CATEGORY_SUGGESTI   ✅ LL   ✅ LLM_REVIEW_SUMMARY: true
+   ✅ LLM_AGENT_TOOLS: true
+   ✅ LLM_BACKGROUND_IMPROVEMENT: true
+✅ Ecommerce Agent: Gemini model initialized
+✅ Ecommerce Agent: Tools bound to model successfully
+📋 E-commerce Tools Ready:
+  ✅ Search Products
+  ✅ Get Recommendations
+  ✅ Similar Products
+✅ SimilarProductService: Gemini model initialized
+✅ ProductComparisonService: Gemini model initialized
+✅ SmartBudgetService: Gemini model initialized
+✅ MoodShoppingService: Gemini model initialized
+AI Service connected to MongoDB
+node:events:487
+      throw er; // Unhandled 'error' event
+   [31m[nodemon] app crashed - waiting for file changes before starting...[39m
+etupListenHandle [as _listen2] (node:net:2009:16)
+    at listenInCluster (node:net:2066:12)
+    at Server.listen (node:net:2171:7)
+    at /Users/shivachoudhry/Downloads/Ai-VendorHub-master/AI/server.js:13:12
+    at <anonymous>
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:2045:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3005
+}
+
+Node.js v24.18.0
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+◇ injected env (16) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+🚩 Feature Flags:
+   ✅ LLM_ENABLED: true
+   ✅ LLM_SEARCH_INTENT: true
+   ✅ LLM_DESCRIPTION_GENERATOR: true
+   ✅ LLM_CATEGORY_SUGGESTION: true
+   ✅ LLM_REVIEW_SUMMARY: true
+   ✅ LLM_AGENT_TOOLS: true
+   ✅ LLM_BACKGROUND_IMPROVEMENT: true
+✅ Ecommerce Agent: Gemini model initialized
+✅ Ecommerce Agent: Tools bound to model successfully
+📋 E-commerce Tools Ready:
+  ✅ Search Products
+  ✅ Get Recommendations
+  ✅ Similar Products
+✅ SimilarProductService: Gemini model initialized
+✅ ProductComparisonService: Gemini model initialized
+✅ SmartBudgetService: Gemini model initialized
+✅ MoodShoppingService: Gemini model initialized
+AI Service connected to MongoDB
+node:events:487
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3005
+    at Server.setupListenHandle [as _listen2] (node:net:2009:16)
+    at listenInCluster (node:net:2066:12)
+    at Server.listen (node:net:2171:7)
+    at /Users/shivachoudhry/Downloads/Ai-VendorHub-master/AI/server.js:13:12
+    at <anonymous>
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:2045:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3005
+}
+
+Node.js v24.18.0
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m
+REVIEW_SUMMARY: true
+   ✅ LLM_AGENT_TOOLS: true
+   ✅ LLM_BACKGROUND_IMPROVEMENT: true
+✅ Ecommerce Agent: Gemini model initialized
+✅ Ecommerce Agent: Tools bound to model successfully
+📋 E-commerce Tools Ready:
+  ✅ Search Products
+  ✅ Get Recommendations
+  ✅ Similar Products
+✅ SimilarProductService: Gemini model initialized
+✅ ProductComparisonService: Gemini model initialized
+✅ SmartBudgetService: Gemini model initialized
+✅ MoodShoppingService: Gemini model initialized
+AI Service connected to MongoDB
+AI Server is running on port 3005

@@ -55,6 +55,7 @@ class DescriptionGeneratorService {
         timestamp: new Date(),
       };
     } catch (error) {
+      console.error('Gemini Error in generateDescription:', error);
       llmMetrics.record({ endpoint: "description", success: false, latencyMs: Date.now() - start, error: `${error.code || "AI_MODEL_ERROR"}: ${error.message}` });
       return {
         success: false,

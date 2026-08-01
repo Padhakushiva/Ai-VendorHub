@@ -6,7 +6,7 @@ export const AI_API_BASE_URL = import.meta.env.VITE_AI_API_URL || '/ai';
 export const aiApi = axios.create({
   baseURL: AI_API_BASE_URL,
   withCredentials: true,
-  timeout: 15000,
+  timeout: 30000,
 });
 
 aiApi.interceptors.request.use((config) => {

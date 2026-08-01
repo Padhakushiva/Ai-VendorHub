@@ -17,6 +17,7 @@ function createTransporter() {
 }
 
 async function sendEmail({ to, subject, text, html }) {
+  console.log("SENDING EMAIL:", { to, subject });
   if (!isEmailConfigured()) {
     console.warn(`Email not configured. Skipping email to ${to}: ${subject}`);
     return {

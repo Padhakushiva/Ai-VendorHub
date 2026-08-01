@@ -588,6 +588,11 @@ const compareProducts = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
     const cacheKey = `product:${id}`;
     const cachedResponse = await productCache.get(cacheKey);
 

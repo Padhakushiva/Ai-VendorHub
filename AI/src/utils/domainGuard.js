@@ -9,7 +9,7 @@ function getModel() {
   if (!process.env.GOOGLE_API_KEY) return null;
   if (!classifierModel) {
     classifierModel = new ChatGoogleGenerativeAI({
-      model: process.env.AI_MODEL || "gemini-2.5-flash",
+      model: process.env.AI_MODEL || "gemini-flash-latest",
       temperature: 0.1,
       apiKey: process.env.GOOGLE_API_KEY,
       maxOutputTokens: 512,

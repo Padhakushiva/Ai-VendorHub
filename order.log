@@ -1,0 +1,87 @@
+
+> order@1.0.0 dev
+> npx nodemon server.js
+
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node server.js`[39m
+[dotenv@17.2.2] injecting env (11) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+Order service is running on port 3003
+Connected to RabbitMQP
+Connected to MongoDB
+Message Sent to queue :  ORDER_SELLER_DASHBOARD.ORDER_CREATED {
+  event: 'order.created',
+  service: 'order',
+  occurredAt: '2026-08-01T04:29:12.300Z',
+  orderId: new ObjectId('6a6d7618ee98c9af4a2676c4'),
+  userId: new ObjectId('6a6d729fc23f7f6479b254a8'),
+  order: {
+    user: new ObjectId('6a6d729fc23f7f6479b254a8'),
+    items: [ [Object], [Object] ],
+    status: 'PENDING',
+    totalPrice: { amount: 58410, currency: 'INR' },
+    totals: {
+      subtotal: 49500,
+      discount: 0,
+      tax: 8910,
+      shipping: 0,
+      total: 58410,
+      currency: 'INR'
+    },
+    paymentSummary: {
+      status: 'PENDING',
+      subtotal: 49500,
+      taxes: 8910,
+      shipping: 0,
+      discount: 0,
+      total: 58410,
+      currency: 'INR'
+    },
+    shippingAddress: {
+      street: '02',
+      city: 'G D Road',
+      state: 'Uttar Pradesh',
+      zip: '203131',
+      country: 'India',
+      _id: new ObjectId('6a6d7618ee98c9af4a2676c7')
+    },
+    timeline: [ [Object] ],
+    inventoryReservation: { status: 'SKIPPED' },
+    orderExpiry: { expiresAt: 2026-08-01T04:59:12.201Z, status: 'ACTIVE' },
+    _id: new ObjectId('6a6d7618ee98c9af4a2676c4'),
+    createdAt: 2026-08-01T04:29:12.216Z,
+    updatedAt: 2026-08-01T04:29:12.262Z,
+    __v: 0
+  }
+}
+Message Sent to queue :  ORDER_LIFECYCLE.EVENT {
+  event: 'order.created',
+  service: 'order',
+  occurredAt: '2026-08-01T04:29:12.306Z',
+  orderId: new ObjectId('6a6d7618ee98c9af4a2676c4'),
+  userId: new ObjectId('6a6d729fc23f7f6479b254a8'),
+  status: 'PENDING',
+  totalPrice: { amount: 58410, currency: 'INR' }
+}
+node:events:487
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: Heartbeat timeout
+    at Heart.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/order/node_modules/amqplib/lib/connection.js:379:21)
+    at Heart.emit (node:events:509:28)
+    at Heart.runHeartbeat (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/order/node_modules/amqplib/lib/heartbeat.js:88:7)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Emitted 'error' event on ChannelModel instance at:
+    at Connection.emit (node:events:509:28)
+    at Heart.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/order/node_modules/amqplib/lib/connection.js:380:14)
+    at Heart.emit (node:events:509:28)
+    at Heart.runHeartbeat (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/order/node_modules/amqplib/lib/heartbeat.js:88:7)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+
+Node.js v24.18.0
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m

@@ -6,7 +6,7 @@ const { searchProduct, addProductToCart } = require("./tools")
 
 // ✅ GEMINI 2.5 FLASH - Fixed tool binding
 const model = process.env.GOOGLE_API_KEY ? new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-flash",
+    model: "gemini-flash-latest",
     temperature: 0.5,
     apiKey: process.env.GOOGLE_API_KEY,
     maxOutputTokens: 2048,

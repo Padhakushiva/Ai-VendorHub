@@ -1,0 +1,251 @@
+
+> final_project@1.0.0 start
+> node server.js
+
+◇ injected env (35) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Server is running on port 3001
+Connected to RabbitMQP
+Connected to Redis
+Connected to MongoDB
+[Google OAuRabbitMQ connection error: Heartbeat timeout
+RabbitMQ channel closed. It will reconnect on next publish.
+RabbitMQ connection closed. Auth service will continue without broker until reconnect.
+Redis connection error: read ETIMEDOUT
+Connected to Redis
+792ae690'),
+  accountId: new ObjectId('6a6ae44a237a0edf792ae690'),
+  username: 'Shiva123',
+  email: 'jaatshaab2006@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: false,
+  addresses: [
+    {
+      addressLine: 'Khurja',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6ae44a237a0edf792ae691'),
+      createdAt: 2026-07-30T05:42:34.287Z
+    }
+  ]
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6ae44a237a0edf792ae690'),
+  accountId: new ObjectId('6a6ae44a237a0edf792ae690'),
+  username: 'Shiva123',
+  email: 'jaatshaab2006@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: false,
+  addresses: [
+    {
+      addressLine: 'Khurja',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6ae44a237a0edf792ae691'),
+      createdAt: 2026-07-30T05:42:34.287Z
+    }
+  ]
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6ae4c0237a0edf792ae694'),
+  accountId: new ObjectId('6a6ae4c0237a0edf792ae694'),
+  username: 'Shiva123',
+  email: 'jaatshaab526@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: false,
+  addresses: [
+    {
+      addressLine: 'Khurja',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6ae4c0237a0edf792ae695'),
+      createdAt: 2026-07-30T05:44:32.954Z
+    }
+  ]
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6ae4c0237a0edf792ae694'),
+  accountId: new ObjectId('6a6ae4c0237a0edf792ae694'),
+  username: 'Shiva123',
+  email: 'jaatshaab526@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: false,
+  addresses: [
+    {
+      addressLine: 'Khurja',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6ae4c0237a0edf792ae695'),
+      createdAt: 2026-07-30T05:44:32.954Z
+    }
+  ]
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.updated {
+  event: 'user.updated',
+  id: new ObjectId('6a6ae4c0237a0edf792ae694'),
+  accountId: new ObjectId('6a6ae4c0237a0edf792ae694'),
+  username: 'Shiva123',
+  email: 'jaatshaab526@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: true,
+  changes: [ 'emailVerified' ],
+  addresses: [
+    {
+      addressLine: 'Khurja',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6ae4c0237a0edf792ae695'),
+      createdAt: 2026-07-30T05:44:32.954Z
+    }
+  ]
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.updated {
+  event: 'user.updated',
+  id: new ObjectId('6a6ae4c0237a0edf792ae694'),
+  accountId: new ObjectId('6a6ae4c0237a0edf792ae694'),
+  username: 'Shiva123',
+  email: 'jaatshaab526@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: true,
+  changes: [ 'emailVerified' ],
+  addresses: [
+    {
+      addressLine: 'Khurja',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6ae4c0237a0edf792ae695'),
+      createdAt: 2026-07-30T05:44:32.954Z
+    }
+  ]
+}
+Redis connection error: read ETIMEDOUT
+Connected to Redis
+Redis connection error: read ETIMEDOUT
+Connected to Redis
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6af683237a0edf792ae6b0'),
+  accountId: new ObjectId('6a6af683237a0edf792ae6b0'),
+  username: 'chaudharyshaab2006',
+  email: 'chaudharyshaab2006@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Jaat' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'google',
+  emailVerified: true,
+  addresses: []
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6af683237a0edf792ae6b0'),
+  accountId: new ObjectId('6a6af683237a0edf792ae6b0'),
+  username: 'chaudharyshaab2006',
+  email: 'chaudharyshaab2006@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Jaat' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'google',
+  emailVerified: true,
+  addresses: []
+}
+RabbitMQ connection error: Heartbeat timeout
+RabbitMQ channel closed. It will reconnect on next publish.
+RabbitMQ connection closed. Auth service will continue without broker until reconnect.
+Redis connection error: read ETIMEDOUT
+Connected to Redis
+[Google OAuth Token Error Details]: undefined self-signed certificate in certificate chain
+Google OAuth error: Failed to obtain access token 
+[Google OAuth Token Error Details]: undefined self-signed certificate in certificate chain
+Google OAuth error: Failed to obtain access token 
+Connected to RabbitMQP
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6b10ce237a0edf792ae6b1'),
+  accountId: new ObjectId('6a6b10ce237a0edf792ae6b1'),
+  username: 'chaudharyshiva2008',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'seller',
+  accountType: 'seller',
+  authProvider: 'google',
+  emailVerified: true
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6b10ce237a0edf792ae6b1'),
+  accountId: new ObjectId('6a6b10ce237a0edf792ae6b1'),
+  username: 'chaudharyshiva2008',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'seller',
+  accountType: 'seller',
+  authProvider: 'google',
+  emailVerified: true
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6b1111237a0edf792ae6b2'),
+  accountId: new ObjectId('6a6b1111237a0edf792ae6b2'),
+  username: 'chaudharyshiva2008',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'google',
+  emailVerified: true,
+  addresses: []
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6b1111237a0edf792ae6b2'),
+  accountId: new ObjectId('6a6b1111237a0edf792ae6b2'),
+  username: 'chaudharyshiva2008',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'google',
+  emailVerified: true,
+  addresses: []
+}
+RabbitMQ connection error: Heartbeat timeout
+RabbitMQ channel closed. It will reconnect on next publish.
+RabbitMQ connection closed. Auth service will continue without broker until reconnect.

@@ -1,0 +1,27 @@
+
+> notification@1.0.0 start
+> node server.js
+
+◇ injected env (13) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+Notification service is running on port 3006
+Connected to RabbitMQ
+Notification listener attached: AUTH_NOTIFICATION.user.created
+Notification listener attached: AUTH_NOTIFICATION.user.updated
+Notification listener attached: AUTH_NOTIFICATION.USER_PASSWORD_RESET
+Notification listener attached: AUTH_NOTIFICATION.SELLER_PASSWORD_RESET
+Notification listener attached: PAYMENT_NOTIFICATION.PAYMENT_COMPLETED
+Notification listener attached: PAYMENT_NOTIFICATION.PAYMENT_FAILED
+Notification listener attached: PAYMENT_EVENTS.PAYMENT_LIFECYCLE
+Notification listener attached: PRODUCT_NOTIFICATION.product.created
+Notification listener attached: PRODUCT_NOTIFICATION.product.updated
+Notification listener attached: PRODUCT_NOTIFICATION.product.deleted
+Notification listener attached: ORDER_NOTIFICATION.ORDER_CANCELLED
+Notification listener attached: ORDER_LIFECYCLE.EVENT
+Notification DB connected
+Email delivery disabled: OAuth2 email environment variables are not configured
+Email delivery disabled: OAuth2 email environment variables are not configured
+Email delivery disabled: OAuth2 email environment variables are not configured
+Email delivery disabled: OAuth2 email environment variables are not configured
+RabbitMQ connection error: Heartbeat timeout
+RabbitMQ channel closed
+RabbitMQ connection closed

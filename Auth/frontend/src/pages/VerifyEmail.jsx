@@ -80,7 +80,7 @@ const VerifyEmail = () => {
             <div className="pt-4">
               <Link
                 to="/profile"
-                className="inline-flex items-center justify-center gap-2 bg-slate-950 hover:bg-slate-800 text-slate-950 font-medium px-6 py-3 rounded-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-950/20 active:translate-y-0"
+                className="inline-flex items-center justify-center gap-2 bg-slate-950 hover:bg-slate-800 text-white font-medium px-6 py-3 rounded-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-950/20 active:translate-y-0"
               >
                 Go to Profile
                 <ArrowRight className="w-4 h-4" />
@@ -102,7 +102,7 @@ const VerifyEmail = () => {
             <div className="pt-4 flex flex-col gap-3">
               <Link
                 to="/profile"
-                className="bg-slate-950 hover:bg-slate-800 text-slate-950 font-medium py-3 rounded-xl transition-all duration-300 hover:-translate-y-0.5"
+                className="bg-slate-950 hover:bg-slate-800 text-white font-medium py-3 rounded-xl transition-all duration-300 hover:-translate-y-0.5"
               >
                 Go to Dashboard
               </Link>

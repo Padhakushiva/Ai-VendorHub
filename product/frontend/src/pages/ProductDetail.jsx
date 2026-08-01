@@ -17,6 +17,7 @@ import {
   Star,
   Truck,
   Zap,
+  Bot
 } from 'lucide-react';
 import { useProduct } from '../context/ProductContext';
 import { useAuthBridge } from '../context/AuthBridgeContext';
@@ -55,6 +56,10 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [wishlistBusy, setWishlistBusy] = useState(false);
   const [cartMessage, setCartMessage] = useState('');
+  const [aiInsights, setAiInsights] = useState(null);
+  const [aiLoading, setAiLoading] = useState(true);
+
+  const [isLoading, setIsLoading] = useState(true);
 
   const images = useMemo(() => normalizeImages(product), [product]);
   const displayImage = selectedImage || images[0] || '';
@@ -71,14 +76,41 @@ export default function ProductDetail() {
   useEffect(() => {
     let mounted = true;
     const loadProduct = async () => {
+      setIsLoading(true);
       const data = await fetchProductById(id);
       if (!mounted) return;
+      
       if (data) {
         setProduct(data);
         const productImages = normalizeImages(data);
         setSelectedImage(productImages[0] || '');
-        const related = await fetchRelatedProducts(id);
-        if (mounted) setRelatedProducts(related);
+        setIsLoading(false); // Render product immediately
+
+        // Fetch related products in background
+        fetchRelatedProducts(id).then(related => {
+          if (mounted) setRelatedProducts(related);
+        });
+        
+        // Fetch AI Insights in background
+        const token = window.localStorage.getItem('vendorhub_access_token');
+        fetch(`/ai/product/${id}/insights`, {
+          headers: {
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        })
+        .then(res => res.json())
+        .then(aiData => {
+          if (mounted && aiData.success && aiData.aiInsights) {
+            setAiInsights(aiData.aiInsights);
+          }
+          if (mounted) setAiLoading(false);
+        })
+        .catch(e => {
+          console.error("Failed to fetch AI insights", e);
+          if (mounted) setAiLoading(false);
+        });
+      } else {
+        setIsLoading(false);
       }
     };
     loadProduct();
@@ -103,7 +135,7 @@ export default function ProductDetail() {
     window.setTimeout(() => setCartMessage(''), 2600);
   };
 
-  if (loading && !product) {
+  if (isLoading || (loading && !product)) {
     return (
       <div className="min-h-screen bg-[#f6f4ee] px-4 py-16">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-center rounded-[30px] border border-stone-200 bg-white p-10 text-center shadow-[0_22px_60px_rgba(28,25,23,0.10)]">
@@ -278,11 +310,71 @@ export default function ProductDetail() {
           <TrustCard icon={ShieldCheck} title="Secure checkout" text="Protected cart and payment flow" />
         </section>
 
-        <section className="mt-6 grid gap-4 lg:grid-cols-3">
-          <InfoPanel icon={BadgeCheck} title="Why shoppers like it" text={product.popularityScore ? `Popularity score ${product.popularityScore}. Strong marketplace fit based on recent catalog signals.` : 'A curated product with marketplace quality controls and seller-backed availability.'} />
-          <InfoPanel icon={Zap} title="AI buying note" text={`Best for shoppers comparing ${product.category || 'general'} products with price, stock, and delivery readiness in one place.`} />
-          <InfoPanel icon={CheckCircle2} title="SKU and seller" text={`SKU: ${product.sku || 'Not provided'} · Seller: ${product.seller?.name || product.sellerName || 'VendorHub seller'}`} />
-        </section>
+        {aiLoading ? (
+          <div className="mt-8 flex items-center gap-3 rounded-[24px] border border-stone-200 bg-stone-50 p-6 opacity-70">
+            <div className="flex h-5 w-5 animate-spin items-center justify-center rounded-full border-2 border-emerald-500 border-t-transparent" />
+            <span className="text-sm font-black text-stone-500">Generating AI Summary...</span>
+          </div>
+        ) : aiInsights ? (
+          <section className="mt-8 overflow-hidden rounded-[28px] border border-emerald-200/60 bg-[linear-gradient(145deg,rgba(236,253,245,0.7),rgba(255,255,255,0.9))] p-1.5 shadow-sm">
+            <div className="rounded-[22px] bg-white/70 p-5 sm:p-7 backdrop-blur-md">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm shadow-emerald-500/20">
+                  <Sparkles className="h-4 w-4 text-white" />
+                </div>
+                <h2 className="text-xl font-black bg-gradient-to-r from-emerald-700 to-emerald-900 bg-clip-text text-transparent">AI Summary</h2>
+              </div>
+              
+              <div className="text-[15px] font-medium leading-relaxed text-stone-700 min-h-[44px]">
+                <TypewriterText text={aiInsights.shortSummary} speed={15} />
+              </div>
+
+              <div className="mt-6">
+                <h3 className="text-xs font-black uppercase tracking-[0.14em] text-emerald-800 mb-3">Key Highlights</h3>
+                <ul className="grid gap-2.5 sm:grid-cols-2">
+                  {aiInsights.keyHighlights?.map((highlight, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm font-medium text-stone-600">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                      <span>{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {aiInsights.insightBoxes && (
+                <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-white/50 p-4 border border-emerald-100/50 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                    <div className="flex items-center gap-2 mb-2">
+                      <BadgeCheck className="h-4 w-4 text-emerald-600" />
+                      <h4 className="text-[11px] font-black uppercase tracking-widest text-emerald-800">Shopper Appeal</h4>
+                    </div>
+                    <p className="text-xs font-bold text-stone-600 leading-snug">{aiInsights.insightBoxes.shopperAppeal}</p>
+                  </div>
+                  
+                  <div className="rounded-2xl bg-white/50 p-4 border border-emerald-100/50 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                    <div className="flex items-center gap-2 mb-2">
+                      <PackageCheck className="h-4 w-4 text-emerald-600" />
+                      <h4 className="text-[11px] font-black uppercase tracking-widest text-emerald-800">SKU & Seller</h4>
+                    </div>
+                    <p className="text-xs font-bold text-stone-600 leading-snug">{aiInsights.insightBoxes.skuAndSeller}</p>
+                  </div>
+
+                  <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 border border-emerald-200/60 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Zap className="h-4 w-4 text-emerald-600" />
+                      <h4 className="text-[11px] font-black uppercase tracking-widest text-emerald-800">Buying Note</h4>
+                    </div>
+                    <p className="text-xs font-bold text-emerald-900 leading-snug">{aiInsights.insightBoxes.buyingNote}</p>
+                  </div>
+                </div>
+              )}
+              
+              <p className="mt-4 text-right text-[10px] uppercase tracking-widest text-stone-400 font-bold">
+                Generated by AI • May contain inaccuracies
+              </p>
+            </div>
+          </section>
+        ) : null}
 
         {relatedProducts.length > 0 && (
           <section className="mt-10">
@@ -337,3 +429,25 @@ const InfoPanel = ({ icon: Icon, title, text }) => (
     <p className="mt-2 text-sm font-bold leading-6 text-stone-500">{text}</p>
   </article>
 );
+
+const TypewriterText = ({ text, speed = 25 }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  
+  useEffect(() => {
+    setDisplayedText('');
+    if (!text) return;
+    
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplayedText(text.slice(0, i + 1));
+      i++;
+      if (i >= text.length) {
+        clearInterval(interval);
+      }
+    }, speed);
+    
+    return () => clearInterval(interval);
+  }, [text, speed]);
+  
+  return <>{displayedText}<span className="inline-block w-1.5 h-4 ml-1 align-middle bg-emerald-500 animate-pulse rounded-sm" style={{ opacity: displayedText.length === text.length ? 0 : 1 }} /></>;
+};

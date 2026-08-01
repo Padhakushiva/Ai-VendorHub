@@ -1,6 +1,8 @@
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 process.env.JWT_SECRET = 'test-secret-key';
+process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-key';
+process.env.EXPOSE_DEV_TOKENS = 'true';
 
 // Mock Redis for testing - don't connect to production Redis
 jest.mock('../DB/redis', () => {

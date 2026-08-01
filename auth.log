@@ -1,0 +1,482 @@
+
+> final_project@1.0.0 dev
+> node --watch server.js
+
+◇ injected env (36) from .env // tip: ⌘ suppress logs { quiet: true }
+Server is running on port 3001
+Connected to RabbitMQP
+Connected to MongoDB
+Connected to Redis
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6d7171c23f7f6479b254a3'),
+  accountId: new ObjectId('6a6d7171c23f7f6479b254a3'),
+  username: 'Shiva',
+  email: 'chaudharyshiva2008@gamail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: false,
+  addresses: [
+    {
+      addressLine: '02',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6d7171c23f7f6479b254a4'),
+      createdAt: 2026-08-01T04:09:21.118Z
+    }
+  ]
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6d7171c23f7f6479b254a3'),
+  accountId: new ObjectId('6a6d7171c23f7f6479b254a3'),
+  username: 'Shiva',
+  email: 'chaudharyshiva2008@gamail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: false,
+  addresses: [
+    {
+      addrRedis connection error: read ETIMEDOUT
+Connected to Redis
+d ETIMEDOUT
+Connected to Redis
+03131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6d7171c23f7f6479b254a4'),
+      createdAt: 2026-08-01T04:09:21.118Z
+    }
+  ]
+}
+SENDING EMAIL: {
+  to: 'chaudharyshiva2008@gamail.com',
+  subject: 'Welcome to Ai-VendorHub, Buyer - Verify your account'
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6d7263c23f7f6479b254a5'),
+  accountId: new ObjectId('6a6d7263c23f7f6479b254a5'),
+  username: 'Shiva123',
+  email: 'chaudharyshiva2008@gmai.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: false,
+  addresses: [
+    {
+      addressLine: '02',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6d7263c23f7f6479b254a6'),
+      createdAt: 2026-08-01T04:13:23.331Z
+    }
+  ]
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6d7263c23f7f6479b254a5'),
+  accountId: new ObjectId('6a6d7263c23f7f6479b254a5'),
+  username: 'Shiva123',
+  email: 'chaudharyshiva2008@gmai.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: false,
+  addresses: [
+    {
+      addressLine: '02',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6d7263c23f7f6479b254a6'),
+      createdAt: 2026-08-01T04:13:23.331Z
+    }
+  ]
+}
+SENDING EMAIL: {
+  to: 'chaudharyshiva2008@gmai.com',
+  subject: 'Welcome to Ai-VendorHub, Buyer - Verify your account'
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6d729fc23f7f6479b254a8'),
+  accountId: new ObjectId('6a6d729fc23f7f6479b254a8'),
+  username: 'Shiva123',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: false,
+  addresses: [
+    {
+      addressLine: '02',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6d729fc23f7f6479b254a9'),
+Redis connection error: read ETIMEDOUT
+Connected to Redis
+age Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6d729fc23f7f6479b254a8'),
+  accountId: new ObjectId('6a6d729fc23f7f6479b254a8'),
+  username: 'Shiva123',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: false,
+  addresses: [
+    {
+      addressLine: '02',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6d729fc23f7f6479b254a9'),
+      createdAt: 2026-08-01T04:14:23.522Z
+    }
+  ]
+}
+SENDING EMAIL: {
+  to: 'chaudharyshiva2008@gmail.com',
+  subject: 'Welcome to Ai-VendorHub, Buyer - Verify your account'
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.updated {
+  event: 'user.updated',
+  id: new ObjectId('6a6d729fc23f7f6479b254a8'),
+  accountId: new ObjectId('6a6d729fc23f7f6479b254a8'),
+  username: 'Shiva123',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: true,
+  changes: [ 'emailVerified' ],
+  addresses: [
+    {
+      addressLine: '02',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6d729fc23f7f6479b254a9'),
+      createdAt: 2026-08-01T04:14:23.522Z
+    }
+  ]
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.updated {
+  event: 'user.updated',
+  id: new ObjectId('6a6d729fc23f7f6479b254a8'),
+  accountId: new ObjectId('6a6d729fc23f7f6479b254a8'),
+  username: 'Shiva123',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: true,
+  changes: [ 'emailVerified' ],
+  addresses: [
+    {
+      addressLine: '02',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6d729fc23f7f6479b254a9'),
+      createdAt: 2026-08-01T04:14:23.522Z
+    }
+  ]
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6d769cc23f7f6479b254b8'),
+  accountId: new ObjectId('6a6d769cc23f7f6479b254b8'),
+  username: 'shivaofficial201',
+  email: 'shivaofficial201@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'User' },
+  role: 'seller',
+  accountType: 'seller',
+  authProvider: 'google',
+  emailVerified: true
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6d769cc23f7f6479b254b8'),
+  accountId: new ObjectId('6a6d769cc23f7f6479b254b8'),
+  username: 'shivaofficial201',
+  email: 'shivaofficial201@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'User' },
+  role: 'seller',
+  accountType: 'seller',
+  authProvider: 'google',
+  emailVerified: true
+}
+RabbitMQ connection error: Heartbeat timeout
+RabbitMQ channel closed. It will reconnect on next publish.
+RabbitMQ connection closed. Auth service will continue without broker until reconnect.
+Redis connection error: read EADDRNOTAVAIL
+Connected to Redis
+Connected to RabbitMQP
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6db0f3c23f7f6479b254b9'),
+  accountId: new ObjectId('6a6db0f3c23f7f6479b254b9'),
+  username: 'Shiva',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'seller',
+  accountType: 'seller',
+  authProvider: 'local',
+  emailVerified: false
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6db0f3c23f7f6479b254b9'),
+  accountId: new ObjectId('6a6db0f3c23f7f6479b254b9'),
+  username: 'Shiva',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'seller',
+  accountType: 'seller',
+  authProvider: 'local',
+  emailVerified: false
+}
+SENDING EMAIL: {
+  to: 'chaudharyshiva2008@gmail.com',
+  subject: 'Welcome to Ai-VendorHub, Seller - Verify your account'
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6db153c23f7f6479b254ba'),
+  accountId: new ObjectId('6a6db153c23f7f6479b254ba'),
+  username: 'Shiva',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'seller',
+  accountType: 'seller',
+  authProvider: 'local',
+  emailVerified: false
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6db153c23f7f6479b254ba'),
+  accountId: new ObjectId('6a6db153c23f7f6479b254ba'),
+  username: 'Shiva',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'seller',
+  accountType: 'seller',
+  authProvider: 'local',
+  emailVerified: false
+}
+SENDING EMAIL: {
+  to: 'chaudharyshiva2008@gmail.com',
+  subject: 'Welcome to Ai-VendorHub, Seller - Verify your account'
+}
+SENDING EMAIL: {
+  to: 'chaudharyshiva2008@gmail.com',
+  subject: 'Welcome to Ai-VendorHub, Seller - Verify your account'
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.updated {
+  event: 'user.updated',
+  id: new ObjectId('6a6db153c23f7f6479b254ba'),
+  accountId: new ObjectId('6a6db153c23f7f6479b254ba'),
+  username: 'Shiva',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'seller',
+  accountType: 'seller',
+  authProvider: 'local',
+  emailVerified: true,
+  changes: [ 'emailVerified' ]
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.updated {
+  event: 'user.updated',
+  id: new ObjectId('6a6db153c23f7f6479b254ba'),
+  accountId: new ObjectId('6a6db153c23f7f6479b254ba'),
+  username: 'Shiva',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Choudhry' },
+  role: 'seller',
+  accountType: 'seller',
+  authProvider: 'local',
+  emailVerified: true,
+  changes: [ 'emailVerified' ]
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6db24ac23f7f6479b254bb'),
+  accountId: new ObjectId('6a6db24ac23f7f6479b254bb'),
+  username: 'chaudharyshaab2006',
+  email: 'chaudharyshaab2006@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Jaat' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'google',
+  emailVerified: true,
+  addresses: []
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6db24ac23f7f6479b254bb'),
+  accountId: new ObjectId('6a6db24ac23f7f6479b254bb'),
+  username: 'chaudharyshaab2006',
+  email: 'chaudharyshaab2006@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Jaat' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'google',
+  emailVerified: true,
+  addresses: []
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6dbdbec23f7f6479b254bc'),
+  accountId: new ObjectId('6a6dbdbec23f7f6479b254bc'),
+  username: 'shiva123',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva ', lastName: 'Ch' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: false,
+  addresses: [
+    {
+      addressLine: '02',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6dbdbec23f7f6479b254bd'),
+      createdAt: 2026-08-01T09:34:54.346Z
+    }
+  ]
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6dbdbec23f7f6479b254bc'),
+  accountId: new ObjectId('6a6dbdbec23f7f6479b254bc'),
+  username: 'shiva123',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva ', lastName: 'Ch' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: false,
+  addresses: [
+    {
+      addressLine: '02',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6dbdbec23f7f6479b254bd'),
+      createdAt: 2026-08-01T09:34:54.346Z
+    }
+  ]
+}
+SENDING EMAIL: {
+  to: 'chaudharyshiva2008@gmail.com',
+  subject: 'Welcome to Ai-VendorHub, Buyer - Verify your account'
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.updated {
+  event: 'user.updated',
+  id: new ObjectId('6a6dbdbec23f7f6479b254bc'),
+  accountId: new ObjectId('6a6dbdbec23f7f6479b254bc'),
+  username: 'shiva123',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva ', lastName: 'Ch' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: true,
+  changes: [ 'emailVerified' ],
+  addresses: [
+    {
+      addressLine: '02',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6dbdbec23f7f6479b254bd'),
+      createdAt: 2026-08-01T09:34:54.346Z
+    }
+  ]
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.updated {
+  event: 'user.updated',
+  id: new ObjectId('6a6dbdbec23f7f6479b254bc'),
+  accountId: new ObjectId('6a6dbdbec23f7f6479b254bc'),
+  username: 'shiva123',
+  email: 'chaudharyshiva2008@gmail.com',
+  fullName: { firstName: 'Shiva ', lastName: 'Ch' },
+  role: 'user',
+  accountType: 'user',
+  authProvider: 'local',
+  emailVerified: true,
+  changes: [ 'emailVerified' ],
+  addresses: [
+    {
+      addressLine: '02',
+      city: 'Bulandshahr',
+      state: 'Uttar Pradesh',
+      pincode: '203131',
+      phone: '8449318626',
+      default: true,
+      _id: new ObjectId('6a6dbdbec23f7f6479b254bd'),
+      createdAt: 2026-08-01T09:34:54.346Z
+    }
+  ]
+}
+Message Sent to queue :  AUTH_NOTIFICATION.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6dbe9fc23f7f6479b254c7'),
+  accountId: new ObjectId('6a6dbe9fc23f7f6479b254c7'),
+  username: 'chaudharyshaab2006',
+  email: 'chaudharyshaab2006@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Jaat' },
+  role: 'seller',
+  accountType: 'seller',
+  authProvider: 'google',
+  emailVerified: true
+}
+Message Sent to queue :  AUTH_SELLER_DASHBOARD.user.created {
+  event: 'user.created',
+  id: new ObjectId('6a6dbe9fc23f7f6479b254c7'),
+  accountId: new ObjectId('6a6dbe9fc23f7f6479b254c7'),
+  username: 'chaudharyshaab2006',
+  email: 'chaudharyshaab2006@gmail.com',
+  fullName: { firstName: 'Shiva', lastName: 'Jaat' },
+  role: 'seller',
+  accountType: 'seller',
+  authProvider: 'google',
+  emailVerified: true
+}

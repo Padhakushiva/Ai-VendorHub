@@ -437,13 +437,13 @@ describe('Email verification and password reset', () => {
     expect(loginResponse.status).toBe(200);
   });
 
-  it('returns a generic response for forgot password when email does not exist', async () => {
+  it('returns 404 response for forgot password when email does not exist', async () => {
     const response = await request(app)
       .post('/api/auth/password/forgot')
       .send({ email: 'missing@example.com' });
 
-    expect(response.status).toBe(200);
-    expect(response.body.message).toBe('If an account exists with this email, a password reset link has been sent');
+    expect(response.status).toBe(404);
+    expect(response.body.message).toBe('No account found with this email address. Please check your email or sign up.');
     expect(response.body.passwordResetToken).toBeUndefined();
   });
 });

@@ -10,7 +10,7 @@ const razorpay = new Razorpay({
 });
 
 const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || "http://localhost:3003";
-const VALID_PAYMENT_METHODS = ["credit_card","debit_card","upi","paypal","cod","test_success"];
+const VALID_PAYMENT_METHODS = ["credit_card","debit_card","upi","paypal","cod"];
 
 const getUserId = (user = {}) => user.id || user._id || user.userId;
 
@@ -116,11 +116,24 @@ async function createPayment(req,res){
 
 
         // Razorpay expects amount in paise (multiply by 100)
-        const order=await razorpay.orders.create({
-            amount: price * 100,
-            currency: orderResponse.data.order.totalPrice.currency || "INR",
-            receipt: `order_${orderId}`
-        });
+        let order;
+        try {
+            order = await razorpay.orders.create({
+                amount: Math.round(price * 100),
+                currency: orderResponse.data.order.totalPrice.currency || "INR",
+                receipt: `order_${orderId}`
+            });
+        } catch (razorpayError) {
+            console.error("Razorpay API full error:", razorpayError);
+            if (razorpayError.statusCode === 401) {
+                return res.status(401).json({ message: "Invalid Razorpay credentials" });
+            }
+            return res.status(500).json({
+                message: "Razorpay payment creation failed. Your Sophos firewall or network might be blocking api.razorpay.com.",
+                error: razorpayError.message || razorpayError
+            });
+        }
+
         const  payment=await paymentModels.create({
             order:orderId,
             razorpayOrderId:order.id,
@@ -162,8 +175,8 @@ async function verifyPayment(req,res){
 
     try {   
         const isValid = validatePaymentVerification({
-            razorpay_order_id: razorpayOrderId,
-            razorpay_payment_id: paymentId
+            order_id: razorpayOrderId,
+            payment_id: paymentId
         }, signature, secret);
 
         if (!isValid) {
@@ -221,97 +234,6 @@ async function verifyPayment(req,res){
   }
 }
 
-async function createTestSuccessPayment(req,res){
-    if(process.env.NODE_ENV === "production"){
-        return res.status(403).json({
-            message:"Test payments are disabled in production"
-        });
-    }
-
-    const authHeader = req.headers?.authorization || req.headers?.Authorization;
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : req.cookies?.token;
-
-    try{
-        const orderId=req.params.orderId || req.body.orderId;
-        if(!orderId){
-            return res.status(400).json({ message:"orderId is required" });
-        }
-
-        let orderResponse;
-        try{
-            orderResponse=await axios.get(`${ORDER_SERVICE_URL}/api/orders/${orderId}`, {
-                headers:{
-                    "Authorization": token ? `Bearer ${token}` : ''
-                }
-            });
-        }catch(axiosError){
-            if(axiosError.response?.status === 404){
-                return res.status(404).json({ message: "Order not found" });
-            }
-            throw axiosError;
-        }
-
-        const order = orderResponse.data.order;
-        const price = Number(order?.totalPrice?.amount || order?.totals?.total || 0);
-        const currency = order?.totalPrice?.currency || order?.totals?.currency || "INR";
-
-        if(!price){
-            return res.status(400).json({
-                message:"Order price not found"
-            });
-        }
-
-        const existingPayment = await paymentModels.findOne({
-            order: orderId,
-            user: getUserId(req.user),
-            status: { $in: ["pending","completed"] }
-        }).sort({ createdAt: -1 });
-
-        const testPaymentId = `test_pay_${Date.now()}`;
-        const testOrderId = existingPayment?.razorpayOrderId || `test_order_${orderId}_${Date.now()}`;
-
-        const payment = existingPayment || await paymentModels.create({
-            order: orderId,
-            razorpayOrderId: testOrderId,
-            user: getUserId(req.user),
-            price: {
-                amount: price,
-                currency
-            }
-        });
-
-        payment.paymentId = payment.paymentId || testPaymentId;
-        payment.signature = payment.signature || "test_signature";
-        payment.method = "test_success";
-        payment.transactionId = payment.transactionId || payment.paymentId;
-        payment.gatewayPayload = {
-            ...(payment.gatewayPayload || {}),
-            testMode: true,
-            completedAt: new Date().toISOString(),
-            note: "Local test payment success; no Razorpay charge was made."
-        };
-        payment.status = "completed";
-        await payment.save();
-
-        await publishPaymentEvent("payment.success", payment, {
-            email: req.user.email,
-            testMode:true,
-        });
-
-        return res.status(200).json({
-            message:"Test payment completed successfully",
-            payment,
-            testMode:true
-        });
-    }catch(error){
-        console.error("Error completing test payment:", error);
-        return res.status(500).json({
-            message:"Unable to complete test payment",
-            error:error.message
-        });
-    }
-}
-
 async function getPaymentById(req,res){
     try{
         const {id}=req.params;
@@ -343,4 +265,4 @@ async function getPaymentById(req,res){
     }
 }
 
-module.exports={createPayment, verifyPayment, createTestSuccessPayment, getPaymentById}
+module.exports={createPayment, verifyPayment, getPaymentById}

@@ -1,0 +1,26 @@
+
+> cart@1.0.0 start
+> node server.js
+
+◇ injected env (12) from .env // tip: ⌘ override existing { override: true }
+Cart Server is running on port 3002
+Connected to MongoDB
+node:events:487
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: Heartbeat timeout
+    at Heart.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/cart/node_modules/amqplib/lib/connection.js:379:21)
+    at Heart.emit (node:events:509:28)
+    at Heart.runHeartbeat (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/cart/node_modules/amqplib/lib/heartbeat.js:88:7)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Emitted 'error' event on ChannelModel instance at:
+    at Connection.emit (node:events:509:28)
+    at Heart.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/cart/node_modules/amqplib/lib/connection.js:380:14)
+    at Heart.emit (node:events:509:28)
+    at Heart.runHeartbeat (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/cart/node_modules/amqplib/lib/heartbeat.js:88:7)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+
+Node.js v24.18.0

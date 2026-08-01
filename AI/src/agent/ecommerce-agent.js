@@ -17,7 +17,7 @@ let modelWithTools = null;
 if (process.env.GOOGLE_API_KEY) {
     try {
         model = new ChatGoogleGenerativeAI({
-            model: "gemini-2.5-flash",
+            model: "gemini-flash-latest",
             temperature: 0.5,
             apiKey: process.env.GOOGLE_API_KEY,
             maxOutputTokens: 2048,
@@ -67,6 +67,79 @@ console.log("  ✅ Search Products")
 console.log("  ✅ Get Recommendations")
 console.log("  ✅ Similar Products")
 
+/**
+ * Helper: Try to get a natural AI response from the LLM.
+ * If the LLM is unavailable or rate-limited, return a simple formatted fallback.
+ */
+async function _tryLLMReply(llmModel, userQuery, products, altProductsText, isNotFoundWithAlternatives) {
+    // Build context
+    let productContext = '';
+    if (products.length > 0) {
+        productContext = products.map((p, i) => 
+            `${i+1}. ${p.title} - ₹${p.price} (${p.currency}) | Stock: ${p.stock} | ${p.description}`
+        ).join('\n');
+    } else if (altProductsText) {
+        productContext = altProductsText;
+    }
+
+    const replyPrompt = isNotFoundWithAlternatives
+        ? `You are a friendly AI shopping assistant for Ai-VendorHub marketplace.
+The customer asked: "${userQuery}"
+Unfortunately, no products matching their exact request were found. However, we have these other products available:
+${productContext}
+
+Generate a warm, natural, conversational reply:
+- Acknowledge that the specific item they asked for is not currently available
+- Briefly mention the alternatives we do have and ask if they'd like to explore them
+- Keep it concise (under 80 words), friendly, and natural
+- Do NOT use markdown formatting (no **, *, bullets, headings)
+- Do NOT mention APIs, databases, services, or technical details`
+        : products.length > 0
+        ? `You are a friendly AI shopping assistant for Ai-VendorHub marketplace.
+The customer asked: "${userQuery}"
+Here are the real products from our catalog:
+${productContext}
+
+Generate a warm, natural, conversational reply:
+- Mention the top picks with their prices naturally in your sentences
+- If one product stands out as the best match, highlight it and explain why
+- Keep it concise (under 100 words), friendly, and natural
+- Do NOT use markdown formatting (no **, *, bullets, headings)
+- Do NOT list products in a numbered/bulleted format - weave them into natural conversation
+- Do NOT mention APIs, databases, services, or technical details`
+        : `You are a friendly AI shopping assistant for Ai-VendorHub marketplace.
+The customer asked: "${userQuery}"
+No products matching their request were found in our catalog.
+
+Generate a warm, natural, conversational reply:
+- Let them know we don't have that item right now
+- Suggest they try different keywords or browse other categories
+- Keep it concise (under 50 words), friendly, and natural
+- Do NOT use markdown formatting (no **, *, bullets, headings)`;
+
+    // Try LLM
+    if (llmModel) {
+        try {
+            console.log('🤖 Fallback path: Attempting LLM natural reply...');
+            const response = await llmModel.invoke([new SystemMessage(replyPrompt), new HumanMessage(userQuery)]);
+            console.log('✅ Fallback path: LLM natural reply generated');
+            return response.content;
+        } catch (err) {
+            console.warn(`⚠️ Fallback path: LLM reply also failed (${err.message}). Using simple format.`);
+        }
+    }
+
+    // Ultimate fallback: simple formatted text (no LLM available at all)
+    if (isNotFoundWithAlternatives) {
+        return `Sorry, I couldn't find "${userQuery}" in our current catalog. But we do have some other great products you might like! Would you like me to show you what's available?`;
+    }
+    if (products.length > 0) {
+        const topProduct = products[0];
+        return `I found ${products.length} product${products.length > 1 ? 's' : ''} for you! The top match is ${topProduct.title} at ₹${topProduct.price}. Would you like more details on any of these?`;
+    }
+    return `Sorry, I couldn't find any products matching "${userQuery}" right now. Try searching with different keywords or browse our categories!`;
+}
+
 const graph = new StateGraph(MessagesAnnotation)
 
     // ========================================
@@ -88,7 +161,7 @@ const graph = new StateGraph(MessagesAnnotation)
         console.log(`${'='.repeat(60)}`)
 
         try {
-            const token = config?.metadata?.token || process.env.AUTH_TOKEN
+            const token = config?.configurable?.metadata?.token || config?.metadata?.token || process.env.AUTH_TOKEN
             const userQuery = state.messages[0].content
 
             console.log(`📝 Query: "${userQuery}"`)
@@ -231,51 +304,52 @@ const graph = new StateGraph(MessagesAnnotation)
                 } else {
                     // No products match the requested keyword in our broad/category search
                     console.log(`⚠️ Fallback search yielded products, but none matched keywords: [${targetWords.join(', ')}]`);
-                    let noMatchText = `Sorry, I couldn't find any products matching "${userQuery}" in our database.\n\nHowever, we do have some other great items you might like:\n\n`;
-                    products.slice(0, 5).forEach((p, idx) => {
-                        noMatchText += `${idx + 1}. **${p.title}** - ₹${p.price?.amount || 0}\n`;
-                    });
-                    noMatchText += `\nWould you like to explore any of these?`;
-                    
-                    state.messages.push(new AIMessage({
-                        content: noMatchText,
-                        tool_calls: []
-                    }))
+                    // Try LLM to generate a natural "not found but here are alternatives" response
+                    const altProductInfo = products.slice(0, 5).map((p, i) => `${i+1}. ${p.title} - ₹${p.price?.amount || 0}`).join('\n');
+                    const fallbackReply = await _tryLLMReply(model, userQuery, [], altProductInfo, true);
+                    state.messages.push(new AIMessage({ content: fallbackReply, tool_calls: [] }));
                     return state;
                 }
             }
 
             if (products.length === 0) {
                 console.log(`⚠️ No products found for "${keyword || 'any'}"`)
-                state.messages.push(new AIMessage({
-                    content: `Sorry, I couldn't find products matching "${userQuery}". Try different keywords or broader filters.\n\nSome tips:\n• Use simpler terms (e.g., "phone" instead of specific model)\n• Adjust your price range\n• Try browsing categories\n\nHow else can I help you?`,
-                    tool_calls: []
-                }))
+                const emptyReply = await _tryLLMReply(model, userQuery, [], '', false);
+                state.messages.push(new AIMessage({ content: emptyReply, tool_calls: [] }));
                 return state
             }
 
             console.log(`✅ Found ${products.length} products`)
 
-            // Format products for display
-            let responseText = `Found ${products.length} product${products.length > 1 ? 's' : ''} matching your search:\n\n`
+            // Build product info for LLM context
+            const productInfo = products.map((p, i) => ({
+                _id: p._id,
+                title: p.title,
+                price: p.price || { amount: 0, currency: 'INR' },
+                stock: p.stock || 0,
+                images: p.images || [],
+                category: p.category || '',
+                description: (p.description || '').substring(0, 120)
+            }));
 
-            products.forEach((p, idx) => {
-                responseText += `${idx + 1}. **${p.title}**\n`
-                responseText += `   💰 Price: ₹${p.price?.amount || 0} (${p.price?.currency || 'INR'})\n`
-                responseText += `   📦 Stock: ${p.stock} units\n`
-                if (p.description) {
-                    responseText += `   📝 ${p.description.substring(0, 100)}...\n`
-                }
-                responseText += `\n`
-            })
+            // Build a simpler list for the LLM prompt
+            const llmProductList = productInfo.map(p => ({
+                title: p.title,
+                price: p.price?.amount || 0,
+                currency: p.price?.currency || 'INR',
+                stock: p.stock,
+                description: p.description
+            }));
 
-            responseText += `\nWould you like more details or want to refine your search?`
+            // Try to get a natural AI response from LLM
+            const naturalReply = await _tryLLMReply(model, userQuery, llmProductList, '', false);
 
             console.log(`✅ Response ready`)
 
             state.messages.push(new AIMessage({
-                content: responseText,
-                tool_calls: []
+                content: naturalReply,
+                tool_calls: [],
+                additional_kwargs: { products: productInfo }
             }))
             return state
 
@@ -306,7 +380,7 @@ const graph = new StateGraph(MessagesAnnotation)
             return state
         }
 
-        const token = config?.metadata?.token || process.env.AUTH_TOKEN
+        const token = config?.configurable?.metadata?.token || config?.metadata?.token || process.env.AUTH_TOKEN
 
         const toolResults = await Promise.all(
             toolCalls.map(async (call) => {
@@ -328,10 +402,10 @@ const graph = new StateGraph(MessagesAnnotation)
                 }
 
                 try {
-                    const result = await toolFunc.invoke({
-                        ...toolInput,
-                        token,
-                    })
+                    const result = await toolFunc.invoke(
+                        toolInput,
+                        { configurable: { token } }
+                    )
                     const resultStr = typeof result === 'string' ? result : JSON.stringify(result)
                     console.log(`   ✅ Success: ${resultStr.substring(0, 150)}...`)
 

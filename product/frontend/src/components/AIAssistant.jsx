@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Sparkles, Search, TrendingUp, Heart, Settings, Zap, Gauge, BarChart3, MessageCircle } from 'lucide-react';
+import { io } from 'socket.io-client';
 
 export default function AIAssistant({ isOpen, onClose, clickX = 0, clickY = 0 }) {
   const [activeTab, setActiveTab] = useState('chat'); // chat, search, recommendations, analytics, settings
@@ -14,6 +15,8 @@ export default function AIAssistant({ isOpen, onClose, clickX = 0, clickY = 0 })
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const socketRef = useRef(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   // AI Search & Recommendations State
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,40 +46,76 @@ export default function AIAssistant({ isOpen, onClose, clickX = 0, clickY = 0 })
     };
   }, [isOpen, messages]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const token = localStorage.getItem('vendorhub_access_token');
+    
+    socketRef.current = io('http://localhost:3005', {
+      auth: { token },
+      transports: ['websocket', 'polling'], // Fallback to polling if websocket fails
+    });
+
+    socketRef.current.on('connect', () => setIsConnected(true));
+    socketRef.current.on('disconnect', () => setIsConnected(false));
+
+    socketRef.current.on('response', (data) => {
+      if (data.success) {
+        setMessages((prev) => [...prev, {
+          id: Date.now() + Math.random(),
+          text: data.message,
+          sender: 'ai',
+          timestamp: new Date()
+        }]);
+      }
+    });
+
+    socketRef.current.on('typing', (data) => {
+      setIsLoading(data.isTyping);
+    });
+
+    socketRef.current.on('error', (data) => {
+      setIsLoading(false);
+      setMessages((prev) => [...prev, {
+        id: Date.now() + Math.random(),
+        text: "I'm having trouble connecting right now: " + (data.message || 'Unknown error'),
+        sender: 'ai',
+        timestamp: new Date()
+      }]);
+    });
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+  }, [isOpen]);
+
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
 
     const userMessage = {
-      id: messages.length + 1,
+      id: Date.now() + Math.random(),
       text: inputValue,
       sender: 'user',
       timestamp: new Date(),
     };
 
-    setMessages([...messages, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
 
-    setTimeout(() => {
-      const aiResponses = [
-        "I found some great options for you! Would you like me to show personalized recommendations?",
-        "That sounds interesting! Let me search our catalog and provide AI-powered suggestions.",
-        "Based on your interests, I recommend checking the trending section. Should I show you those products?",
-        "Perfect! I can help you find exactly what you're looking for. Want to enable smart filters?",
-        "I'm analyzing our catalog now. I'll show you the best matches based on your preferences.",
-      ];
-      const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
-      
-      const aiMessage = {
-        id: messages.length + 2,
-        text: randomResponse,
-        sender: 'ai',
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, aiMessage]);
+    if (socketRef.current && isConnected) {
+      socketRef.current.emit('message', inputValue);
+    } else {
       setIsLoading(false);
-    }, 800);
+      setMessages((prev) => [...prev, {
+        id: Date.now() + Math.random(),
+        text: "I'm currently offline. Please check your connection.",
+        sender: 'ai',
+        timestamp: new Date()
+      }]);
+    }
   };
 
   const handleSearch = () => {

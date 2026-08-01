@@ -39,6 +39,14 @@ const SellerSchema = new mongoose.Schema({
         type: Date,
         select: false
     },
+    emailOtp: {
+        type: String,
+        select: false
+    },
+    emailOtpExpires: {
+        type: Date,
+        select: false
+    },
     passwordResetToken: {
         type: String,
         select: false

@@ -9,7 +9,9 @@ const axios = require("axios")
  */
 
 // ✅ AI SMART SEARCH - Search products with budget filters
-const searchProducts = tool(async ({ query, maxPrice, minPrice, token }) => {
+const searchProducts = tool(async (input, config) => {
+    const { query, maxPrice, minPrice } = input;
+    const token = config?.configurable?.token || input.token;
     console.log("🔍 searchProducts called:", { query, maxPrice, minPrice })
 
     if (!token) {
@@ -85,7 +87,9 @@ const searchProducts = tool(async ({ query, maxPrice, minPrice, token }) => {
 })
 
 // ✅ AI PRODUCT RECOMMENDATION - Get products with AI scoring
-const getProductRecommendations = tool(async ({ category, budget, token }) => {
+const getProductRecommendations = tool(async (input, config) => {
+    const { category, budget } = input;
+    const token = config?.configurable?.token || input.token;
     console.log("💡 getProductRecommendations called:", { category, budget })
 
     if (!token) {
@@ -148,7 +152,9 @@ const getProductRecommendations = tool(async ({ category, budget, token }) => {
 })
 
 // ✅ SIMILAR PRODUCTS - Get products similar to a reference product
-const getSimilarProducts = tool(async ({ productTitle, priceRange, token }) => {
+const getSimilarProducts = tool(async (input, config) => {
+    const { productTitle, priceRange } = input;
+    const token = config?.configurable?.token || input.token;
     console.log("🔄 getSimilarProducts called:", { productTitle, priceRange })
 
     if (!token) {

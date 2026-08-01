@@ -1,9 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Bot, Boxes, BrainCircuit, ShieldCheck, ShoppingBag, Sparkles } from 'lucide-react';
 import heroImage from '../assets/auth-marketplace-hero.png';
 import GlowBackground from './GlowBackground';
 
-const AuthShell = ({ children, eyebrow = 'AI Commerce OS', title, subtitle }) => {
+const MARKETING_SLIDES = [
+  {
+    eyebrow: 'AI COMMERCE OS',
+    title: 'Scale Your Storefront with AI Intelligence',
+    subtitle: 'Automate product listings, optimize search rankings, and convert shoppers with real-time AI recommendations.',
+    tags: ['AI Recommendations', 'Vendor Analytics', 'Instant Setup'],
+  },
+  {
+    eyebrow: 'MERCHANT GROWTH ENGINE',
+    title: 'Sell Smarter, Faster & Worldwide',
+    subtitle: 'Empower your e-commerce business with automated inventory tracking, zero-friction checkout, and dynamic pricing.',
+    tags: ['Real-Time Stock', 'Dynamic Pricing', 'Multi-Currency'],
+  },
+  {
+    eyebrow: 'NEXT-GEN MARKETPLACE',
+    title: 'The Next Generation of AI Commerce',
+    subtitle: 'Connecting buyers with verified merchants through smart AI search, microservices, and instant order tracking.',
+    tags: ['Smart Search', 'Verified Sellers', 'Instant Checkout'],
+  },
+  {
+    eyebrow: 'UNIFIED PLATFORM',
+    title: 'Streamlined Operations for Vendors & Buyers',
+    subtitle: 'Manage your products, process payments securely, and monitor customer trends all in one unified ecosystem.',
+    tags: ['Secure Payments', 'Live Tracking', 'AI Support'],
+  },
+  {
+    eyebrow: 'CUSTOMER ENGAGEMENT',
+    title: 'Turn Visitors Into Loyal Repeat Customers',
+    subtitle: 'Engage buyers with AI-driven product suggestions, personalized wishlists, and seamless order fulfillment.',
+    tags: ['Wishlist Sync', 'Personalized Feed', '24/7 AI Assistant'],
+  },
+];
+
+const AuthShell = ({ children }) => {
+  const [activeSlide] = useState(() => {
+    const index = Math.floor(Math.random() * MARKETING_SLIDES.length);
+    return MARKETING_SLIDES[index];
+  });
+
+  const displayEyebrow = activeSlide.eyebrow;
+  const displayTitle = activeSlide.title;
+  const displaySubtitle = activeSlide.subtitle;
+  const displayTags = activeSlide.tags;
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_12%_12%,rgba(120,113,108,0.18),transparent_28%),radial-gradient(circle_at_88%_18%,rgba(16,185,129,0.12),transparent_30%),linear-gradient(135deg,#f7f4ee_0%,#e8e5df_46%,#f6f1e8_100%)] px-4 py-8 sm:px-6 lg:px-10">
       <div className="pointer-events-none absolute left-[-8%] top-[12%] h-72 w-72 rounded-full bg-stone-400/18 blur-3xl" />
@@ -27,13 +70,13 @@ const AuthShell = ({ children, eyebrow = 'AI Commerce OS', title, subtitle }) =>
           </div>
 
           <div className="absolute bottom-7 left-7 right-7">
-            <div className="rounded-[1.5rem] border border-white/35 bg-white/88 p-5 text-stone-950 shadow-2xl backdrop-blur-xl">
-              <p className="mb-2 text-[11px] font-black uppercase tracking-[0.22em] text-emerald-700">{eyebrow}</p>
-              <h2 className="max-w-md text-4xl font-black leading-none tracking-tight">{title}</h2>
-              <p className="mt-3 max-w-lg text-sm leading-6 text-stone-600">{subtitle}</p>
+            <div className="rounded-[1.5rem] border border-white/25 bg-stone-950/85 p-6 text-white shadow-2xl backdrop-blur-xl animate-fade-in">
+              <p className="mb-2 text-[11px] font-black uppercase tracking-[0.22em] text-emerald-400">{displayEyebrow}</p>
+              <h2 className="max-w-md text-3xl font-black leading-tight text-white sm:text-4xl">{displayTitle}</h2>
+              <p className="mt-3 max-w-lg text-sm font-medium leading-6 text-stone-200">{displaySubtitle}</p>
               <div className="mt-5 flex flex-wrap gap-2">
-                {['Discover AI products', 'Sell smarter', 'Manage everything'].map((item) => (
-                  <span key={item} className="rounded-full border border-stone-200 bg-white px-3.5 py-2 text-xs font-bold text-stone-700">
+                {displayTags.map((item) => (
+                  <span key={item} className="rounded-full border border-white/20 bg-white/15 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-md">
                     {item}
                   </span>
                 ))}

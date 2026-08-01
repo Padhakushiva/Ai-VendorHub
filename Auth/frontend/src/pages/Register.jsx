@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import AuthShell from '../components/AuthShell';
-import { User, Mail, Lock, FileText, MapPin, Phone, ArrowRight, ArrowLeft, Store, ShoppingBag } from 'lucide-react';
+import { User, Mail, Lock, FileText, MapPin, Phone, ArrowRight, ArrowLeft, Store, ShoppingBag, KeyRound, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { getRedirectFromSearch, goAfterAuth, rememberRedirect } from '../utils/redirect';
 
 const Register = () => {
@@ -25,10 +25,33 @@ const Register = () => {
   const [pincode, setPincode] = useState('');
   const [phone, setPhone] = useState('');
 
-  const { registerUser, registerSeller } = useAuth();
+  // OTP Verification States
+  const [showOtpScreen, setShowOtpScreen] = useState(false);
+  const [isSuccessVerified, setIsSuccessVerified] = useState(false);
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [resendTimer, setResendTimer] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+  const otpInputRefs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
+
+  const { registerUser, registerSeller, verifyOtp, resendOtp } = useAuth();
   const { showNotification } = useNotification();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    let timer;
+    if (showOtpScreen && resendTimer > 0) {
+      setCanResend(false);
+      timer = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (resendTimer === 0) {
+      setCanResend(true);
+    }
+    return () => clearInterval(timer);
+  }, [showOtpScreen, resendTimer]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -79,10 +102,31 @@ const Register = () => {
     return true;
   };
 
+  const handlePincodeChange = async (e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setPincode(val);
+
+    if (val.length === 6) {
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${val}`);
+        const data = await res.json();
+        if (data?.[0]?.Status === 'Success' && data[0]?.PostOffice?.length > 0) {
+          const po = data[0].PostOffice[0];
+          const autoCity = po.District || po.Block || po.Name || '';
+          const autoState = po.State || '';
+          if (autoCity) setCity(autoCity);
+          if (autoState) setState(autoState);
+          showNotification(`📍 Auto-filled City: ${autoCity}, State: ${autoState}`, 'info');
+        }
+      } catch (err) {
+        console.warn('Pincode fetch failed:', err);
+      }
+    }
+  };
+
   const handleNext = () => {
     if (validateStep()) {
       if (step === 2 && isSeller) {
-        // Sellers submit on step 2
         handleSubmit();
       } else {
         setStep((s) => s + 1);
@@ -123,26 +167,88 @@ const Register = () => {
     setLoading(false);
 
     if (result.success) {
-      showNotification('Registration successful! Verification email sent.', 'success');
-      
-      // Developer Mode notification
-      if (result.devToken) {
-        console.log('Verification Token (Dev Mode Only):', result.devToken);
-        showNotification(`[DEV MODE] Verification token: ${result.devToken}`, 'info');
-      }
-
-      goAfterAuth(navigate, {
-        ...(result.user || {}),
-        role: isSeller ? 'seller' : (result.user?.role || 'user'),
-      }, result.accessToken || result.token);
+      setRegisteredEmail(result.email || email);
+      setShowOtpScreen(true);
+      showNotification(result.message || 'Verification code sent to your email!', 'success');
     } else {
-      showNotification(result.message, 'error');
+      showNotification(result.message || 'User already exists with this email or username', 'error');
+    }
+  };
+
+  const handleOtpDigitChange = (index, value) => {
+    const sanitizedValue = value.replace(/\D/g, '');
+    const updatedDigits = [...otpDigits];
+    updatedDigits[index] = sanitizedValue.slice(-1);
+    setOtpDigits(updatedDigits);
+
+    if (sanitizedValue && index < 5) {
+      otpInputRefs[index + 1].current?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+      otpInputRefs[index - 1].current?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pastedData) {
+      const updatedDigits = [...otpDigits];
+      for (let i = 0; i < 6; i++) {
+        updatedDigits[i] = pastedData[i] || '';
+      }
+      setOtpDigits(updatedDigits);
+      const nextIndex = Math.min(pastedData.length, 5);
+      otpInputRefs[nextIndex].current?.focus();
+    }
+  };
+
+  const handleVerifyOtpSubmit = async (e) => {
+    if (e) e.preventDefault();
+    const fullOtp = otpDigits.join('');
+    if (fullOtp.length !== 6) {
+      showNotification('Please enter the full 6-digit OTP code', 'error');
+      return;
+    }
+
+    setOtpLoading(true);
+    const result = await verifyOtp(registeredEmail, fullOtp);
+    setOtpLoading(false);
+
+    if (result.success) {
+      setIsSuccessVerified(true);
+      showNotification('Account verified successfully!', 'success');
+      setTimeout(() => {
+        goAfterAuth(navigate, {
+          ...(result.user || {}),
+          role: isSeller ? 'seller' : (result.user?.role || 'user'),
+        }, result.accessToken || result.token);
+      }, 1600);
+    } else {
+      showNotification(result.message || 'OTP verification failed', 'error');
+    }
+  };
+
+  const handleResendOtpClick = async () => {
+    if (!canResend) return;
+    setCanResend(false);
+    setResendTimer(60);
+
+    const result = await resendOtp(registeredEmail);
+    if (result.success) {
+      showNotification('A new 6-digit OTP code has been sent to your email!', 'success');
+    } else {
+      showNotification(result.message || 'Failed to resend OTP', 'error');
     }
   };
 
   const handleGoogleSignup = () => {
     rememberRedirect(getRedirectFromSearch(location.search));
-    window.location.href = `/api/auth/google?role=${isSeller ? 'seller' : 'user'}`;
+    const backendUrl = import.meta.env.VITE_AUTH_API_URL || 'http://localhost:3001';
+    window.location.href = `${backendUrl}/api/auth/google?role=${isSeller ? 'seller' : 'user'}`;
   };
 
   const loginSearch = (() => {
@@ -154,13 +260,90 @@ const Register = () => {
   const totalSteps = isSeller ? 2 : 3;
 
   return (
-    <AuthShell
-      title="Create Your AI Commerce Account"
-      subtitle="Join as a buyer or merchant and connect with AI products, secure payments, smart carts and marketplace intelligence."
-    >
+    <AuthShell>
       <div className="w-full premium-panel rounded-[2rem] p-6 shadow-2xl animate-slide-up relative overflow-hidden">
         {/* Subtle decorative glowing corner */}
         <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-amber-300/15 blur-3xl" />
+
+        {isSuccessVerified ? (
+          <div className="py-12 flex items-center justify-center gap-3 text-emerald-600 animate-fade-in">
+            <CheckCircle2 className="h-8 w-8 stroke-[3]" />
+            <span className="text-3xl font-black tracking-tight">Success</span>
+          </div>
+        ) : showOtpScreen ? (
+          <div className="py-2 animate-fade-in">
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 shadow-sm">
+                <KeyRound className="h-7 w-7" />
+              </div>
+              <h3 className="text-2xl font-black text-stone-950">Verify 6-Digit OTP</h3>
+              <p className="mt-2 text-xs font-semibold text-stone-600">
+                We sent a 6-digit verification code to <span className="font-extrabold text-emerald-700">{registeredEmail}</span>
+              </p>
+            </div>
+
+            <form onSubmit={handleVerifyOtpSubmit} className="space-y-6">
+              <div className="flex justify-center gap-2 sm:gap-3" onPaste={handleOtpPaste}>
+                {otpDigits.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={otpInputRefs[index]}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpDigitChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="h-12 w-10 sm:h-14 sm:w-12 rounded-2xl border border-stone-300 bg-white text-center text-xl sm:text-2xl font-black text-stone-950 shadow-sm transition-all focus:border-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-500/15"
+                    autoFocus={index === 0}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="submit"
+                disabled={otpLoading || otpDigits.join('').length !== 6}
+                className="liquid-button flex w-full items-center justify-center gap-2 py-3.5"
+              >
+                {otpLoading ? (
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <>
+                    Verify & Complete Setup
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center text-xs font-semibold text-stone-600 space-y-3">
+              <div>
+                Didn't get the code?{' '}
+                {canResend ? (
+                  <button
+                    type="button"
+                    onClick={handleResendOtpClick}
+                    className="font-extrabold text-emerald-700 hover:underline inline-flex items-center gap-1"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" /> Resend OTP
+                  </button>
+                ) : (
+                  <span className="font-bold text-stone-400">Resend in {resendTimer}s</span>
+                )}
+              </div>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowOtpScreen(false)}
+                  className="text-stone-500 hover:text-stone-950 font-bold transition-colors"
+                >
+                  ← Edit registration info
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
 
         {/* Header */}
         <div className="mb-5">
@@ -169,26 +352,26 @@ const Register = () => {
               <Store className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/42">Marketplace access</p>
-              <p className="text-sm font-bold text-white">Ai-VendorHub</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-emerald-700">Marketplace access</p>
+              <p className="text-sm font-bold text-stone-950">Ai-VendorHub</p>
             </div>
           </div>
-          <h2 className="text-3xl font-black leading-none tracking-tight text-white sm:text-4xl">Create account</h2>
-          <p className="text-white/52 mt-3 text-sm">Choose buyer or merchant and create your account securely.</p>
+          <h2 className="text-3xl font-black leading-none tracking-tight text-stone-950 sm:text-4xl">Create account</h2>
+          <p className="mt-3 text-sm font-medium text-stone-500">Choose buyer or merchant and create your account securely.</p>
         </div>
 
         {/* Role Selection (Only allowed on Step 1) */}
         {step === 1 && (
           <>
-          <p className="mb-2 text-[11px] font-black uppercase tracking-[0.18em] text-white/40">Account type</p>
-          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/12 bg-white/6 p-1.5 shadow-inner shadow-white/5 mb-5">
+          <p className="mb-2 text-[11px] font-black uppercase tracking-[0.18em] text-stone-500">Account type</p>
+          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-stone-200 bg-stone-100/70 p-1.5 mb-5">
             <button
               type="button"
               onClick={() => setIsSeller(false)}
               className={`relative flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold transition-all duration-300 ${
                 !isSeller
-                  ? 'bg-white text-slate-950 shadow-lg shadow-black/25'
-                  : 'text-white/45 hover:bg-white/8 hover:text-white'
+                  ? 'bg-white text-stone-950 shadow-md'
+                  : 'text-stone-500 hover:text-stone-950'
               }`}
             >
               <ShoppingBag className="h-4 w-4" />
@@ -200,8 +383,8 @@ const Register = () => {
               onClick={() => setIsSeller(true)}
               className={`relative flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold transition-all duration-300 ${
                 isSeller
-                  ? 'bg-white text-slate-950 shadow-lg shadow-black/25'
-                  : 'text-white/45 hover:bg-white/8 hover:text-white'
+                  ? 'bg-white text-stone-950 shadow-md'
+                  : 'text-stone-500 hover:text-stone-950'
               }`}
             >
               <Store className="h-4 w-4" />
@@ -220,17 +403,17 @@ const Register = () => {
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all duration-300 ${
                     step > i + 1
-                       ? 'bg-white/16 border-white/20 text-white'
+                       ? 'bg-stone-900 border-stone-900 text-white'
                       : step === i + 1
-                      ? 'border-white/20 bg-white/10 text-white ring-4 ring-white/8'
-                      : 'border-white/12 bg-white/6 text-white/35'
+                      ? 'border-emerald-600 bg-emerald-700 text-white ring-4 ring-emerald-700/20'
+                      : 'border-stone-300 bg-stone-100 text-stone-400'
                   }`}
                 >
                   {i + 1}
                 </div>
                 <span
                   className={`ml-2 text-xs font-semibold hidden sm:inline ${
-                    step === i + 1 ? 'text-white' : 'text-white/35'
+                    step === i + 1 ? 'text-stone-950 font-bold' : 'text-stone-400'
                   }`}
                 >
                   {i === 0 ? 'Credentials' : i === 1 ? 'Personal Info' : 'Address'}
@@ -239,7 +422,7 @@ const Register = () => {
               {i < totalSteps - 1 && (
                 <div
                   className={`flex-1 h-0.5 mx-2 transition-colors duration-300 ${
-                    step > i + 1 ? 'bg-white/32' : 'bg-white/10'
+                    step > i + 1 ? 'bg-stone-900' : 'bg-stone-200'
                   }`}
                 />
               )}
@@ -253,7 +436,7 @@ const Register = () => {
           {step === 1 && (
             <div className="space-y-4 animate-fade-in">
               <div className="relative group">
-                <div className="absolute left-3 top-3.5 text-white/38 group-focus-within:text-white transition-colors">
+                <div className="absolute left-3 top-3.5 text-stone-400 group-focus-within:text-emerald-700 transition-colors">
                   <User className="w-5 h-5" />
                 </div>
                 <input
@@ -266,7 +449,7 @@ const Register = () => {
               </div>
 
               <div className="relative group">
-                <div className="absolute left-3 top-3.5 text-white/38 group-focus-within:text-white transition-colors">
+                <div className="absolute left-3 top-3.5 text-stone-400 group-focus-within:text-emerald-700 transition-colors">
                   <Mail className="w-5 h-5" />
                 </div>
                 <input
@@ -279,7 +462,7 @@ const Register = () => {
               </div>
 
               <div className="relative group">
-                <div className="absolute left-3 top-3.5 text-white/38 group-focus-within:text-white transition-colors">
+                <div className="absolute left-3 top-3.5 text-stone-400 group-focus-within:text-emerald-700 transition-colors">
                   <Lock className="w-5 h-5" />
                 </div>
                 <input
@@ -297,7 +480,7 @@ const Register = () => {
           {step === 2 && (
             <div className="space-y-4 animate-fade-in">
               <div className="relative group">
-                <div className="absolute left-3 top-3.5 text-white/38 group-focus-within:text-white transition-colors">
+                <div className="absolute left-3 top-3.5 text-stone-400 group-focus-within:text-emerald-700 transition-colors">
                   <FileText className="w-5 h-5" />
                 </div>
                 <input
@@ -310,7 +493,7 @@ const Register = () => {
               </div>
 
               <div className="relative group">
-                <div className="absolute left-3 top-3.5 text-white/38 group-focus-within:text-white transition-colors">
+                <div className="absolute left-3 top-3.5 text-stone-400 group-focus-within:text-emerald-700 transition-colors">
                   <FileText className="w-5 h-5" />
                 </div>
                 <input
@@ -328,7 +511,7 @@ const Register = () => {
           {step === 3 && !isSeller && (
             <div className="space-y-4 animate-fade-in">
               <div className="relative group">
-                <div className="absolute left-3 top-3.5 text-white/38 group-focus-within:text-white transition-colors">
+                <div className="absolute left-3 top-3.5 text-stone-400 group-focus-within:text-emerald-700 transition-colors">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <input
@@ -368,12 +551,12 @@ const Register = () => {
                     maxLength={6}
                     placeholder="Pincode (6 digits)"
                     value={pincode}
-                    onChange={(e) => setPincode(e.target.value)}
+                    onChange={handlePincodeChange}
                     className="w-full field-surface py-3.5 px-4"
                   />
                 </div>
                 <div className="relative group">
-                  <div className="absolute left-3 top-3.5 text-white/38 group-focus-within:text-white transition-colors">
+                  <div className="absolute left-3 top-3.5 text-stone-400 group-focus-within:text-emerald-700 transition-colors">
                     <Phone className="w-4 h-4" />
                   </div>
                   <input
@@ -430,10 +613,10 @@ const Register = () => {
 
         <div className="relative my-5">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/12" />
+            <div className="w-full border-t border-stone-200" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-[#17191e]/80 px-3 text-white/38 backdrop-blur-xl">Or sign up instantly</span>
+            <span className="bg-white/80 px-3 text-stone-400 font-semibold backdrop-blur-xl">Or sign up instantly</span>
           </div>
         </div>
 
@@ -464,15 +647,17 @@ const Register = () => {
         </button>
 
         {/* Footer Link */}
-        <div className="mt-6 text-center text-sm text-white/50">
+        <div className="mt-6 text-center text-sm text-stone-500">
           Already have an account?{' '}
           <Link
             to={`/login${loginSearch}`}
-            className="text-white hover:text-cyan-100 font-semibold transition-colors"
+            className="font-bold text-stone-950 hover:text-emerald-700 transition-colors"
           >
             Sign in
           </Link>
         </div>
+        </>
+        )}
       </div>
     </AuthShell>
   );

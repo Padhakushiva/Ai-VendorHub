@@ -60,6 +60,7 @@ const Login = () => {
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isLoginSuccess, setIsLoginSuccess] = useState(false);
 
   const { login } = useAuth();
   const { showNotification } = useNotification();
@@ -105,11 +106,14 @@ const Login = () => {
     setLoading(false);
 
     if (result.success) {
-      showNotification(`Welcome back, ${result.user.username}!`, 'success');
-      goAfterAuth(navigate, {
-        ...(result.user || {}),
-        role: accountType === 'admin' ? 'admin' : accountType === 'seller' ? 'seller' : (result.user?.role || 'user'),
-      }, result.accessToken || result.token);
+      setIsLoginSuccess(true);
+      showNotification(`Welcome back, ${result.user?.username || 'user'}!`, 'success');
+      setTimeout(() => {
+        goAfterAuth(navigate, {
+          ...(result.user || {}),
+          role: accountType === 'admin' ? 'admin' : accountType === 'seller' ? 'seller' : (result.user?.role || 'user'),
+        }, result.accessToken || result.token);
+      }, 1500);
     } else {
       showNotification(result.message, 'error');
     }
@@ -128,147 +132,153 @@ const Login = () => {
   })();
 
   return (
-    <AuthShell
-      title="Choose Login Type"
-      subtitle="Select how you want to enter Ai-VendorHub."
-    >
+    <AuthShell>
       <div className="premium-panel relative w-full overflow-hidden rounded-[2rem] p-5 animate-slide-up sm:p-6">
         <div className={`absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gradient-to-br ${activeRole.accent} opacity-70 blur-3xl`} />
 
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-2xl border border-white/60 bg-stone-950/88 px-3 py-2 text-white shadow-sm backdrop-blur-xl">
-              <Bot className="h-4 w-4" />
-              <span className="text-sm font-black">Ai-VendorHub</span>
-            </div>
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-700">
-              {step === 'choose' ? 'Choose access' : 'Secure sign in'}
-            </p>
-            <h2 className="mt-2 text-3xl font-black leading-none tracking-tight text-stone-950 sm:text-4xl">
-              {step === 'choose' ? 'Choose account' : `${activeRole.title} Login`}
-            </h2>
-            <p className="mt-3 text-sm font-medium leading-6 text-stone-500">
-              {step === 'choose' ? 'Select User, Seller, or Admin.' : `Sign in as ${activeRole.title}.`}
-            </p>
-          </div>
-
-          {step === 'login' && (
-            <button
-              type="button"
-              onClick={() => setStep('choose')}
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-stone-200 bg-white text-stone-500 shadow-sm transition hover:bg-stone-50 hover:text-stone-950"
-              aria-label="Choose another account type"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-          )}
-        </div>
-
-        <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl border border-stone-200 bg-stone-100 p-1.5 text-xs font-black uppercase tracking-[0.14em] text-stone-400">
-          <span className={`rounded-xl px-3 py-2 text-center transition ${step === 'choose' ? 'bg-white text-stone-950 shadow-sm' : 'text-stone-500'}`}>1. Role</span>
-          <span className={`rounded-xl px-3 py-2 text-center transition ${step === 'login' ? 'bg-white text-stone-950 shadow-sm' : 'text-stone-400'}`}>2. Login</span>
-        </div>
-
-        {step === 'choose' ? (
-          <div className="grid gap-3">
-            {roleOptions.map((role) => (
-              <RoleCard key={role.value} role={role} active={accountType === role.value} onClick={() => selectRole(role.value)} />
-            ))}
+        {isLoginSuccess ? (
+          <div className="py-12 flex items-center justify-center gap-3 text-emerald-600 animate-fade-in">
+            <Check className="h-8 w-8 stroke-[3]" />
+            <span className="text-3xl font-black tracking-tight">Success</span>
           </div>
         ) : (
-          <div className="space-y-5">
-            <div className={`rounded-[1.5rem] border border-white/62 bg-gradient-to-br ${activeRole.accent} p-4 ring-1 ${activeRole.ring} backdrop-blur-xl`}>
-              <div className="flex items-center gap-3">
-                <div className="glass-icon h-12 w-12">
-                  <activeRole.icon className="h-5 w-5" />
+          <div>
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <div className="mb-4 inline-flex items-center gap-2 rounded-2xl border border-stone-900 bg-stone-950 px-3.5 py-2 text-white shadow-md">
+                  <Bot className="h-4 w-4 text-emerald-400" />
+                  <span className="text-sm font-black text-white">Ai-VendorHub</span>
                 </div>
-                <div>
-                  <p className="text-lg font-black text-stone-950">{activeRole.title}</p>
-                  <p className="text-xs font-semibold text-stone-500">Selected login type</p>
-                </div>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="relative group">
-                <div className="absolute left-3 top-3.5 text-stone-400 transition-colors group-focus-within:text-emerald-700">
-                  <User className="h-5 w-5" />
-                </div>
-                <input
-                  type="text"
-                  placeholder={accountType === 'admin' ? 'Admin email or username' : 'Username or email'}
-                  value={emailOrUsername}
-                  onChange={(event) => setEmailOrUsername(event.target.value)}
-                  className="field-surface w-full py-3.5 pl-11 pr-4"
-                />
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-700">
+                  {step === 'choose' ? 'Choose access' : 'Secure sign in'}
+                </p>
+                <h2 className="mt-2 text-3xl font-black leading-none tracking-tight text-stone-950 sm:text-4xl">
+                  {step === 'choose' ? 'Choose account' : `${activeRole.title} Login`}
+                </h2>
+                <p className="mt-3 text-sm font-semibold leading-6 text-stone-600">
+                  {step === 'choose' ? 'Select User, Seller, or Admin.' : `Sign in as ${activeRole.title}.`}
+                </p>
               </div>
 
-              <div className="relative group">
-                <div className="absolute left-3 top-3.5 text-stone-400 transition-colors group-focus-within:text-emerald-700">
-                  <Lock className="h-5 w-5" />
-                </div>
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  className="field-surface w-full py-3.5 pl-11 pr-4"
-                />
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <RoleMiniSwitch accountType={accountType} setAccountType={setAccountType} />
-                <Link to="/forgot-password" className="shrink-0 text-xs font-semibold text-stone-500 transition-colors hover:text-stone-950">
-                  Forgot password?
-                </Link>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="liquid-button flex w-full items-center justify-center gap-2 py-3.5 group"
-              >
-                {loading ? (
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                ) : (
-                  <>
-                    {activeRole.cta}
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-stone-200" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-3 text-stone-400">Or continue with</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              className="glass-button group flex w-full items-center justify-center gap-3 py-3"
-            >
-              {googleIcon}
-              Google as {activeRole.label}
-            </button>
-
-            <div className="text-center text-sm text-stone-500">
-              {accountType === 'admin' ? (
-                <span>Admin accounts are issued by the platform owner.</span>
-              ) : (
-                <>
-                  New here?{' '}
-                  <Link to={`/register${registerSearch}`} className="font-bold text-stone-950 transition-colors hover:text-emerald-700">
-                    Create {accountType === 'seller' ? 'seller' : 'user'} account
-                  </Link>
-                </>
+              {step === 'login' && (
+                <button
+                  type="button"
+                  onClick={() => setStep('choose')}
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-stone-300 bg-white text-stone-700 shadow-sm transition hover:bg-stone-100 hover:text-stone-950"
+                  aria-label="Choose another account type"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
               )}
             </div>
+
+            <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl border border-stone-300/80 bg-stone-200/70 p-1.5 text-xs font-black uppercase tracking-[0.14em]">
+              <span className={`rounded-xl px-3 py-2 text-center transition ${step === 'choose' ? 'bg-white text-stone-950 shadow-sm font-black' : 'text-stone-600 font-bold'}`}>1. Role</span>
+              <span className={`rounded-xl px-3 py-2 text-center transition ${step === 'login' ? 'bg-white text-stone-950 shadow-sm font-black' : 'text-stone-600 font-bold'}`}>2. Login</span>
+            </div>
+
+            {step === 'choose' ? (
+              <div className="grid gap-3">
+                {roleOptions.map((role) => (
+                  <RoleCard key={role.value} role={role} active={accountType === role.value} onClick={() => selectRole(role.value)} />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <div className={`rounded-[1.5rem] border border-stone-200 bg-white p-4 shadow-sm ring-1 ${activeRole.ring}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="glass-icon h-12 w-12 text-emerald-700">
+                      <activeRole.icon className="h-5 w-5 text-emerald-700" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-black text-stone-950">{activeRole.title}</p>
+                      <p className="text-xs font-semibold text-stone-600">Selected login type</p>
+                    </div>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="relative group">
+                    <div className="absolute left-3 top-3.5 text-stone-500 transition-colors group-focus-within:text-emerald-700">
+                      <User className="h-5 w-5" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder={accountType === 'admin' ? 'Admin email or username' : 'Username or email'}
+                      value={emailOrUsername}
+                      onChange={(event) => setEmailOrUsername(event.target.value)}
+                      className="field-surface w-full py-3.5 pl-11 pr-4"
+                    />
+                  </div>
+
+                  <div className="relative group">
+                    <div className="absolute left-3 top-3.5 text-stone-500 transition-colors group-focus-within:text-emerald-700">
+                      <Lock className="h-5 w-5" />
+                    </div>
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      className="field-surface w-full py-3.5 pl-11 pr-4"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3">
+                    <RoleMiniSwitch accountType={accountType} setAccountType={setAccountType} />
+                    <Link to="/forgot-password" className="shrink-0 text-xs font-bold text-stone-600 transition-colors hover:text-emerald-700">
+                      Forgot password?
+                    </Link>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="liquid-button flex w-full items-center justify-center gap-2 py-3.5 group"
+                  >
+                    {loading ? (
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    ) : (
+                      <>
+                        {activeRole.cta}
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-stone-300" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white/90 px-3 font-semibold text-stone-500">Or continue with</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className="glass-button group flex w-full items-center justify-center gap-3 py-3"
+                >
+                  {googleIcon}
+                  Google as {activeRole.label}
+                </button>
+
+                <div className="text-center text-sm font-semibold text-stone-600">
+                  {accountType === 'admin' ? (
+                    <span>Admin accounts are issued by the platform owner.</span>
+                  ) : (
+                    <>
+                      New here?{' '}
+                      <Link to={`/register${registerSearch}`} className="font-extrabold text-stone-950 transition-colors hover:text-emerald-700">
+                        Create {accountType === 'seller' ? 'seller' : 'user'} account
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -283,19 +293,21 @@ const RoleCard = ({ role, active, onClick }) => {
       type="button"
       onClick={onClick}
       className={`group relative overflow-hidden rounded-[1.5rem] border p-4 text-left transition-all duration-300 hover:-translate-y-1 ${
-        active ? 'border-white/75 bg-white/48 ring-1 shadow-[0_18px_38px_rgba(28,25,23,0.10)] backdrop-blur-xl ' + role.ring : 'border-white/55 bg-white/24 backdrop-blur-xl hover:bg-white/42'
+        active ? 'border-stone-900 bg-white shadow-[0_12px_28px_rgba(28,25,23,0.12)] ring-2 ring-emerald-700/20' : 'border-stone-200 bg-white/80 hover:bg-white hover:border-stone-400 shadow-sm'
       }`}
     >
-      <div className={`absolute inset-0 bg-gradient-to-br ${role.accent} opacity-80`} />
-      <div className="relative flex items-start gap-4">
-        <div className="glass-icon h-12 w-12 shrink-0">
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-xl font-black text-stone-950">{role.title}</h3>
-            <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" />
+      <div className="relative flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-stone-200 bg-white text-emerald-700 shadow-sm">
+            <Icon className="h-5 w-5 text-emerald-700" />
           </div>
+          <div>
+            <h3 className="text-xl font-black text-stone-950">{role.title}</h3>
+            <p className="text-xs font-semibold text-stone-600">Access {role.title} Portal</p>
+          </div>
+        </div>
+        <div className="grid h-9 w-9 place-items-center rounded-full border border-stone-200 bg-stone-100 text-stone-700 transition group-hover:translate-x-1 group-hover:bg-stone-950 group-hover:text-white">
+          <ArrowRight className="h-4 w-4" />
         </div>
       </div>
     </button>
@@ -303,14 +315,14 @@ const RoleCard = ({ role, active, onClick }) => {
 };
 
 const RoleMiniSwitch = ({ accountType, setAccountType }) => (
-  <div className="flex min-w-0 rounded-full border border-white/60 bg-white/26 p-1 backdrop-blur-xl">
+  <div className="flex min-w-0 rounded-full border border-stone-300 bg-stone-100 p-1">
     {roleOptions.map((role) => (
       <button
         key={role.value}
         type="button"
         onClick={() => setAccountType(role.value)}
         className={`rounded-full px-3 py-1.5 text-[11px] font-black transition ${
-          accountType === role.value ? 'bg-white text-stone-950 shadow-sm' : 'text-stone-500 hover:text-stone-950'
+          accountType === role.value ? 'bg-stone-950 text-white shadow-sm' : 'text-stone-600 hover:text-stone-950'
         }`}
       >
         {role.label}

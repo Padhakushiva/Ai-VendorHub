@@ -11,7 +11,7 @@ class ReviewSummaryService {
   constructor() {
     this.model = process.env.GOOGLE_API_KEY
       ? new ChatGoogleGenerativeAI({
-          model: process.env.AI_MODEL || "gemini-2.5-flash",
+          model: process.env.AI_MODEL || "gemini-flash-latest",
           temperature: 0.25,
           apiKey: process.env.GOOGLE_API_KEY,
           maxOutputTokens: 1024,

@@ -33,7 +33,14 @@ async function upsertUser(user) {
 async function upsertProduct(product) {
     const productId = pickId(product, ["productId"]);
     if (!productId) return;
-    const { _id, id, productId: ignoredProductId, ...productUpdate } = product;
+    
+    // Extract seller properly to prevent CastError if it comes as an object
+    const { _id, id, productId: ignoredProductId, seller, sellerId, ...productUpdate } = product;
+    const finalSellerId = sellerId || (seller && typeof seller === 'object' ? seller.id || seller._id : seller);
+
+    if (finalSellerId) {
+        productUpdate.seller = finalSellerId;
+    }
 
     await productModel.findOneAndUpdate(
         { _id: productId },
@@ -50,7 +57,12 @@ async function deleteOrArchiveProduct(product) {
         await productModel.deleteOne({ _id: productId });
         return;
     }
-    const { _id, id, productId: ignoredProductId, ...productUpdate } = product;
+    const { _id, id, productId: ignoredProductId, seller, sellerId, ...productUpdate } = product;
+    const finalSellerId = sellerId || (seller && typeof seller === 'object' ? seller.id || seller._id : seller);
+
+    if (finalSellerId) {
+        productUpdate.seller = finalSellerId;
+    }
 
     await productModel.findOneAndUpdate(
         { _id: productId },

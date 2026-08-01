@@ -15,9 +15,6 @@ router.post('/razorpay/order',createAuthMiddleware(['user']),paymentController.c
 // verify payment
 router.post("/verify",createAuthMiddleware(['user']),paymentController.verifyPayment);
 
-// local/dev fake success payment
-router.post("/test-success/:orderId",createAuthMiddleware(['user']),paymentController.createTestSuccessPayment);
-
 router.get("/:id",createAuthMiddleware(['user','admin']),paymentController.getPaymentById);
 
 

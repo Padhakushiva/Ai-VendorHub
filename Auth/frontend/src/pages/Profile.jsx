@@ -4,13 +4,11 @@ import { useNotification } from '../context/NotificationContext';
 import { productApi } from '../services/productApi';
 import {
   BadgeCheck,
-  Bell,
   Heart,
   LogOut,
   Mail,
   MapPin,
   Menu,
-  Package,
   Phone,
   Plus,
   Save,
@@ -66,6 +64,7 @@ const Profile = () => {
     updateProfile,
     addAddress,
     deleteAddress,
+    requestVerification,
   } = useAuth();
   const { showNotification } = useNotification();
 
@@ -77,6 +76,7 @@ const Profile = () => {
   const [username, setUsername] = useState(user?.username || '');
   const [email, setEmail] = useState(user?.email || '');
   const [savingProfile, setSavingProfile] = useState(false);
+  const [sendingVerification, setSendingVerification] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [addressLine, setAddressLine] = useState('');
   const [city, setCity] = useState('');
@@ -84,15 +84,9 @@ const Profile = () => {
   const [pincode, setPincode] = useState('');
   const [phone, setPhone] = useState('');
   const [addingAddress, setAddingAddress] = useState(false);
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [securityAlerts, setSecurityAlerts] = useState(true);
-  const [orders, setOrders] = useState([]);
   const [savedItems, setSavedItems] = useState([]);
   const [savedLoading, setSavedLoading] = useState(false);
   const [savedError, setSavedError] = useState('');
-  const [showOrderModal, setShowOrderModal] = useState(false);
-  const [orderTitle, setOrderTitle] = useState('');
-  const [orderStatus, setOrderStatus] = useState('Pending');
 
   if (!user) return null;
 
@@ -106,10 +100,8 @@ const Profile = () => {
   const navItems = [
     { id: 'overview', label: 'Overview', icon: User },
     { id: 'profile', label: 'Profile', icon: Mail },
-    { id: 'orders', label: 'Orders', icon: Package },
     { id: 'saved', label: 'Saved', icon: Heart },
     { id: 'addresses', label: 'Addresses', icon: MapPin, hidden: isSeller },
-    { id: 'notifications', label: 'Alerts', icon: Bell },
   ].filter((item) => !item.hidden);
 
   const handleSaveProfile = async (event) => {
@@ -138,6 +130,35 @@ const Profile = () => {
   const handleLogout = async () => {
     if (!window.confirm('Are you sure you want to logout?')) return;
     await logout();
+  };
+
+  const handleRequestVerification = async () => {
+    setSendingVerification(true);
+    const result = await requestVerification();
+    setSendingVerification(false);
+    showNotification(result.message || 'Verification email request completed', result.success ? 'success' : 'error');
+  };
+
+  const handleProfilePincodeChange = async (val) => {
+    const clean = val.replace(/\D/g, '').slice(0, 6);
+    setPincode(clean);
+
+    if (clean.length === 6) {
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${clean}`);
+        const data = await res.json();
+        if (data?.[0]?.Status === 'Success' && data[0]?.PostOffice?.length > 0) {
+          const po = data[0].PostOffice[0];
+          const autoCity = po.District || po.Block || po.Name || '';
+          const autoState = po.State || '';
+          if (autoCity) setCity(autoCity);
+          if (autoState) setState(autoState);
+          showNotification(`📍 Auto-filled City: ${autoCity}, State: ${autoState}`, 'info');
+        }
+      } catch (err) {
+        console.warn('Pincode fetch failed:', err);
+      }
+    }
   };
 
   const handleAddAddress = async (event) => {
@@ -176,28 +197,6 @@ const Profile = () => {
     if (!window.confirm('Are you sure you want to delete this address?')) return;
     const result = await deleteAddress(addressId);
     showNotification(result.success ? 'Address deleted successfully' : result.message || 'Failed to delete address', result.success ? 'success' : 'error');
-  };
-
-  const handleAddOrder = (event) => {
-    event.preventDefault();
-    if (!orderTitle.trim()) {
-      showNotification('Please enter an order title', 'error');
-      return;
-    }
-
-    setOrders((current) => [
-      {
-        id: `ORD-${Date.now().toString().slice(-6)}`,
-        title: orderTitle.trim(),
-        status: orderStatus,
-        createdAt: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-      },
-      ...current,
-    ]);
-    setOrderTitle('');
-    setOrderStatus('Pending');
-    setShowOrderModal(false);
-    showNotification('Order section item added locally', 'success');
   };
 
   const fetchSavedItems = useCallback(async () => {
@@ -260,13 +259,12 @@ const Profile = () => {
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
                 <PrimaryButton onClick={() => setActiveTab('profile')}>Edit profile</PrimaryButton>
-                {!user.emailVerified && <SecondaryButton onClick={() => setActiveTab('security')}>Verify email</SecondaryButton>}
+                {!user.emailVerified && <SecondaryButton onClick={handleRequestVerification}>{sendingVerification ? 'Sending...' : 'Send verification email'}</SecondaryButton>}
               </div>
             </PremiumPanel>
 
             <PremiumPanel title="Quick Actions" icon={Sparkles}>
               <div className="space-y-3">
-                <QuickAction icon={Package} title="Orders" text={`${orders.length} local item${orders.length === 1 ? '' : 's'}`} onClick={() => setActiveTab('orders')} />
                 <QuickAction icon={Heart} title="Saved Items" text="Synced with product wishlist" onClick={() => setActiveTab('saved')} />
                 {!isSeller && <QuickAction icon={MapPin} title="Addresses" text={primaryAddress ? `${primaryAddress.city}, ${primaryAddress.state}` : 'Add delivery address'} onClick={() => setActiveTab('addresses')} />}
               </div>
@@ -298,21 +296,6 @@ const Profile = () => {
               </div>
             </form>
           </PremiumPanel>
-        </div>
-      );
-    }
-
-    if (activeTab === 'orders') {
-      return (
-        <div className="space-y-6">
-          <PageIntro title="Orders" text="Order cards are ready for Order Service data. Current entries are local placeholders." action={<PrimaryButton onClick={() => setShowOrderModal(true)}><Plus className="h-4 w-4" /> Add order</PrimaryButton>} />
-          {orders.length ? (
-            <div className="grid gap-4">
-              {orders.map((order) => <OrderCard key={order.id} order={order} onDelete={() => setOrders((current) => current.filter((item) => item.id !== order.id))} />)}
-            </div>
-          ) : (
-            <EmptyState icon={Package} title="No orders yet" text="Orders will appear here when Order Service data is connected." action="Add order" onAction={() => setShowOrderModal(true)} />
-          )}
         </div>
       );
     }
@@ -356,15 +339,7 @@ const Profile = () => {
       );
     }
 
-    return (
-      <div className="space-y-6">
-        <PageIntro title="Notifications" text="Local preferences for account and security communication." />
-        <PremiumPanel title="Communication Preferences" icon={Bell}>
-          <PreferenceRow title="Email Notifications" text="Receive account and verification emails." enabled={emailNotifications} onClick={() => setEmailNotifications((value) => !value)} />
-          <PreferenceRow title="Security Alerts" text="Notify on login and session activity." enabled={securityAlerts} onClick={() => setSecurityAlerts((value) => !value)} />
-        </PremiumPanel>
-      </div>
-    );
+    return null;
   };
 
   return (
@@ -415,7 +390,7 @@ const Profile = () => {
             <div className="grid gap-4 sm:grid-cols-2">
               <ProfileInput label="City" value={city} onChange={setCity} placeholder="Delhi" />
               <ProfileInput label="State" value={state} onChange={setState} placeholder="Delhi" />
-              <ProfileInput label="Pincode" value={pincode} onChange={(value) => setPincode(value.replace(/\D/g, '').slice(0, 6))} placeholder="110001" maxLength={6} />
+              <ProfileInput label="Pincode" value={pincode} onChange={handleProfilePincodeChange} placeholder="110001" maxLength={6} />
               <ProfileInput label="Phone" value={phone} onChange={(value) => setPhone(value.replace(/\D/g, '').slice(0, 10))} placeholder="9876543210" maxLength={10} />
             </div>
             <PrimaryButton submit disabled={addingAddress} full>{addingAddress ? 'Adding...' : 'Add address'}</PrimaryButton>
@@ -423,27 +398,6 @@ const Profile = () => {
         </Modal>
       )}
 
-      {showOrderModal && (
-        <Modal title="Add local order item" onClose={() => setShowOrderModal(false)}>
-          <form onSubmit={handleAddOrder} className="space-y-4">
-            <ProfileInput label="Order Title" value={orderTitle} onChange={setOrderTitle} placeholder="Example: AI Smart Speaker" />
-            <label className="block">
-              <span className="text-xs font-black uppercase tracking-[0.14em] text-stone-500">Status</span>
-              <select
-                value={orderStatus}
-                onChange={(event) => setOrderStatus(event.target.value)}
-                className="mt-2 h-12 w-full rounded-2xl border border-stone-200 bg-white px-4 text-sm font-bold text-stone-950 outline-none focus:bg-[#fff8d7]"
-              >
-                <option>Pending</option>
-                <option>Processing</option>
-                <option>Shipped</option>
-                <option>Delivered</option>
-              </select>
-            </label>
-            <PrimaryButton submit full>Add order</PrimaryButton>
-          </form>
-        </Modal>
-      )}
     </div>
   );
 };
@@ -555,7 +509,7 @@ const PremiumPanel = ({ title, icon: Icon, children }) => (
 );
 
 const MetricCard = ({ icon: Icon, label, value, tone }) => {
-  const toneClass = tone === 'green' ? 'bg-emerald-700' : tone === 'yellow' ? 'bg-amber-50' : tone === 'dark' ? 'bg-[#151515] text-white' : 'bg-blue-50';
+  const toneClass = tone === 'green' ? 'bg-emerald-700 text-white' : tone === 'yellow' ? 'bg-amber-50 text-amber-900' : tone === 'dark' ? 'bg-[#151515] text-white' : 'bg-blue-50 text-blue-900';
   return (
     <article className="rounded-[26px] border border-stone-200 bg-white p-4 shadow-sm">
       <span className={`grid h-12 w-12 place-items-center rounded-2xl border border-stone-200 ${toneClass}`}>
@@ -605,22 +559,6 @@ const AddressCard = ({ address, onDelete }) => (
   </article>
 );
 
-const OrderCard = ({ order, onDelete }) => (
-  <article className="rounded-[28px] border border-stone-200 bg-white p-5 shadow-sm">
-    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-      <div className="min-w-0">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-[#006b4f]">{order.id}</p>
-        <h3 className="mt-2 truncate text-xl font-black text-stone-950">{order.title}</h3>
-        <p className="mt-1 text-sm font-bold text-black/50">Added locally on {order.createdAt}</p>
-      </div>
-      <div className="flex flex-wrap gap-3">
-        <span className="rounded-full border border-stone-200 bg-blue-50 px-4 py-2 text-sm font-black text-stone-950">{order.status}</span>
-        <button type="button" onClick={onDelete} className="rounded-full border border-stone-200 bg-rose-50 px-4 py-2 text-sm font-black text-stone-950">Remove</button>
-      </div>
-    </div>
-  </article>
-);
-
 const SavedItemCard = ({ item, onDelete }) => (
   <article className="rounded-[28px] border border-stone-200 bg-white p-5 shadow-sm">
     <div className="flex items-start gap-4">
@@ -647,18 +585,6 @@ const SavedItemCard = ({ item, onDelete }) => (
     </div>
     <button type="button" onClick={onDelete} className="mt-5 rounded-full border border-stone-200 bg-rose-50 px-4 py-2 text-sm font-black text-stone-950">Remove</button>
   </article>
-);
-
-const PreferenceRow = ({ title, text, enabled, onClick }) => (
-  <div className="flex items-center justify-between gap-5 border-b-[2px] border-black/10 py-4 last:border-b-0">
-    <div>
-      <p className="font-black text-stone-950">{title}</p>
-      <p className="mt-1 text-sm font-bold text-stone-500">{text}</p>
-    </div>
-    <button type="button" onClick={onClick} className={`relative h-8 w-14 rounded-full border border-stone-200 transition ${enabled ? 'bg-emerald-700' : 'bg-white'}`} aria-pressed={enabled}>
-      <span className={`absolute top-1 h-5 w-5 rounded-full border border-stone-200 bg-white transition ${enabled ? 'left-7' : 'left-1'}`} />
-    </button>
-  </div>
 );
 
 const ProfileInput = ({ label, value, onChange, type = 'text', placeholder, maxLength, disabled = false }) => (
@@ -707,7 +633,7 @@ const PrimaryButton = ({ children, onClick, disabled = false, submit = false, fu
     type={submit ? 'submit' : 'button'}
     disabled={disabled}
     onClick={onClick}
-    className={`inline-flex h-12 items-center justify-center gap-2 rounded-full border border-stone-200 bg-emerald-700 px-5 text-sm font-black text-stone-950 shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 ${full ? 'w-full' : ''} ${className}`}
+    className={`inline-flex h-12 items-center justify-center gap-2 rounded-full border border-stone-200 bg-emerald-700 px-5 text-sm font-black text-white shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 ${full ? 'w-full' : ''} ${className}`}
   >
     {children}
   </button>

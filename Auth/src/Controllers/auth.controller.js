@@ -27,11 +27,17 @@ function hashToken(token) {
 }
 
 function shouldExposeDevTokens() {
-  return process.env.NODE_ENV !== "production";
+  return process.env.EXPOSE_DEV_TOKENS === "true"
+    || process.env.NODE_ENV === "test"
+    || Boolean(process.env.JEST_WORKER_ID);
 }
 
 function getClientBaseUrl(req) {
   return process.env.CLIENT_BASE_URL || `${req.protocol}://${req.get("host")}`;
+}
+
+function getFrontendUrl(req, path) {
+  return `${getClientBaseUrl(req)}${path}`;
 }
 
 function getGoogleSuccessRedirect() {
@@ -60,18 +66,60 @@ async function findAccountByEmail(email) {
   return { account: null, isSeller: false };
 }
 
+function generate6DigitOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function sendVerificationOtp(req, account) {
+  const otpCode = generate6DigitOTP();
+  account.emailOtp = hashToken(otpCode);
+  account.emailOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
+  await account.save();
+
+  const recipientName = account.fullName?.firstName ? `${account.fullName.firstName}` : account.username;
+  const roleLabel = account.role === "seller" ? "Seller" : account.role === "admin" ? "Admin" : "Buyer";
+  const roleMessage = roleLabel === "Seller"
+    ? "Your seller account is ready for verification. After verification, you can manage products, orders, inventory, and marketplace activity."
+    : roleLabel === "Admin"
+      ? "Your admin account is ready for verification. After verification, you can access marketplace administration tools."
+      : "Your buyer account is ready for verification. After verification, you can explore products, wishlist items, manage your cart, and place orders.";
+
+  await sendEmail({
+    to: account.email,
+    subject: `Welcome to Ai-VendorHub, ${roleLabel} - Verify your account`,
+    text: `Hello ${recipientName},\n\nWelcome to Ai-VendorHub.\n\nAccount role: ${roleLabel}\n\n${roleMessage}\n\nYour 6-digit verification OTP is: ${otpCode}\n\nThis code expires in 10 minutes. Do not share this OTP with anyone.\n\nBest regards,\nAi-VendorHub Team`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; background-color: #0f172a; color: #ffffff; padding: 32px; border-radius: 16px; border: 1px solid #1e293b;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <span style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #10b981;">Ai-VendorHub</span>
+          <span style="font-size: 10px; background-color: #f59e0b; color: #78350f; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">AI</span>
+        </div>
+        <h2 style="color: #ffffff; text-align: center; font-size: 22px; font-weight: 800; margin-bottom: 8px;">Welcome, ${recipientName}</h2>
+        <p style="color: #94a3b8; font-size: 14px; text-align: center; margin-bottom: 16px;">Your <strong style="color: #ffffff;">${roleLabel}</strong> account has been created.</p>
+        <p style="color: #94a3b8; font-size: 14px; text-align: center; margin-bottom: 24px;">${roleMessage}</p>
+        <div style="background: #1e293b; border: 2px dashed #10b981; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 24px;">
+          <span style="font-family: monospace; font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #10b981;">${otpCode}</span>
+        </div>
+        <p style="color: #64748b; font-size: 12px; text-align: center; margin-bottom: 0;">This code is valid for 10 minutes. Do not share this code with anyone.</p>
+      </div>
+    `,
+  });
+
+  return otpCode;
+}
+
 async function sendVerificationEmail(req, account) {
   const verificationToken = createPublicToken();
   account.emailVerificationToken = hashToken(verificationToken);
   account.emailVerificationExpires = new Date(Date.now() + EMAIL_TOKEN_EXPIRES_MS);
   await account.save();
 
-  const verifyUrl = `${getClientBaseUrl(req)}/api/auth/verify-email/${verificationToken}`;
+  const verificationUrl = getFrontendUrl(req, `/verify-email/${verificationToken}`);
   await sendEmail({
     to: account.email,
-    subject: "Verify your Ai-VendorHub email",
-    text: `Verify your email by opening this link: ${verifyUrl}`,
-    html: `<p>Verify your email by opening this link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p>`,
+    subject: "Verify your Ai-VendorHub email address",
+    text: `Hello ${account.fullName?.firstName || account.username},\n\nVerify your email address by opening this link:\n${verificationUrl}\n\nThis link expires in 1 hour.`,
+    html: `<p>Hello ${account.fullName?.firstName || account.username},</p><p>Verify your email address by opening this link:</p><p><a href="${verificationUrl}">Verify email address</a></p><p>This link expires in 1 hour.</p>`,
   });
 
   return verificationToken;
@@ -83,7 +131,7 @@ async function sendPasswordResetEmail(req, account) {
   account.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_EXPIRES_MS);
   await account.save();
 
-  const resetUrl = `${getClientBaseUrl(req)}/api/auth/password/reset/${resetToken}`;
+  const resetUrl = getFrontendUrl(req, `/reset-password/${resetToken}`);
   await sendEmail({
     to: account.email,
     subject: "Reset your Ai-VendorHub password",
@@ -117,7 +165,7 @@ function createRefreshToken(account, tokenId) {
       tokenId,
       type: "refresh",
     },
-    process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+    process.env.JWT_REFRESH_SECRET,
     { expiresIn: REFRESH_TOKEN_EXPIRES_IN },
   );
 }
@@ -325,7 +373,7 @@ const loginFromUserCollection = async (req, res, allowedRoles = ['user'], label 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: `Invalid ${label} username, email or password`,
+        message: "Invalid username, email or password",
       });
     }
 
@@ -333,7 +381,7 @@ const loginFromUserCollection = async (req, res, allowedRoles = ['user'], label 
     if (!isPasswordMatch) {
       return res.status(401).json({
         success: false,
-        message: `Invalid ${label} username, email or password`,
+        message: "Invalid username, email or password",
       });
     }
 
@@ -375,6 +423,7 @@ async function registeruser(req, res) {
 
     if (isUserAlreadyExist) {
       return res.status(409).json({
+        success: false,
         message: "User already exists with this email or username",
       });
     }
@@ -406,20 +455,21 @@ async function registeruser(req, res) {
 
     const user = await userModel.create(userData);
 
-
-
     await publishUserEvent(USER_CREATED_EVENT, user, false);
 
-    const emailVerificationToken = await sendVerificationEmail(req, user);
-
-    
+    // const emailVerificationToken = await sendVerificationEmail(req, user);
+    await sendVerificationOtp(req, user);
 
     const { accessToken, refreshToken } = await createAuthTokens(user);
-    setAuthCookies(res, accessToken, refreshToken);
+    if (shouldExposeDevTokens()) {
+      setAuthCookies(res, accessToken, refreshToken);
+    }
 
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
+      requiresOtp: true,
+      email: user.email,
       user: {
         username: user.username,
         email: user.email,
@@ -427,9 +477,7 @@ async function registeruser(req, res) {
         addresses: user.addresses || [],
         role: user.role,
       },
-      token: accessToken,
-      accessToken,
-      ...(shouldExposeDevTokens() ? { emailVerificationToken } : {}),
+      ...(shouldExposeDevTokens() ? { token: accessToken, accessToken } : {}),
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -452,7 +500,8 @@ async function registerSeller(req, res) {
 
     if (isSellerAlreadyExist) {
       return res.status(409).json({
-        message: "Seller   already exists with this email or username",
+        success: false,
+        message: "Seller already exists with this email or username",
       });
     }
 
@@ -470,29 +519,28 @@ async function registerSeller(req, res) {
 
     const seller = await sellerModel.create(sellerData);
 
-
-
     await publishUserEvent(USER_CREATED_EVENT, seller, true);
 
-    const emailVerificationToken = await sendVerificationEmail(req, seller);
-
-    
+    // const emailVerificationToken = await sendVerificationEmail(req, seller);
+    await sendVerificationOtp(req, seller);
 
     const { accessToken, refreshToken } = await createAuthTokens(seller);
-    setAuthCookies(res, accessToken, refreshToken);
+    if (shouldExposeDevTokens()) {
+      setAuthCookies(res, accessToken, refreshToken);
+    }
 
     return res.status(201).json({
       success: true,
       message: "Seller registered successfully",
+      requiresOtp: true,
+      email: seller.email,
       seller: {
         username: seller.username,
         email: seller.email,
         fullName: seller.fullName,
         role: seller.role,
       },
-      token: accessToken,
-      accessToken,
-      ...(shouldExposeDevTokens() ? { emailVerificationToken } : {}),
+      ...(shouldExposeDevTokens() ? { token: accessToken, accessToken } : {}),
     });
   } catch (error) {
     console.error('Seller registration error:', error);
@@ -739,9 +787,16 @@ async function googleAuthCallback(req, res) {
     }
 
     const { accessToken, refreshToken } = await createAuthTokens(req.user);
+
+    // Set httpOnly cookie for same-origin requests
     setAuthCookies(res, accessToken, refreshToken);
 
-    return res.redirect(getGoogleSuccessRedirect());
+    // Also pass token in URL so the frontend (different port in dev) can
+    // store it in localStorage — fixes cross-origin cookie blocking.
+    const successUrl = new URL(getGoogleSuccessRedirect());
+    successUrl.searchParams.set('token', accessToken);
+
+    return res.redirect(successUrl.toString());
 
   } catch (error) {
     console.error("Google auth callback error:", error);
@@ -766,7 +821,7 @@ async function refreshAccessToken(req, res) {
 
     const decoded = jwt.verify(
       refreshToken,
-      process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+      process.env.JWT_REFRESH_SECRET,
     );
 
     if (decoded.type !== "refresh" || !decoded.tokenId) {
@@ -838,7 +893,7 @@ async function   logoutUser(req, res) {
       try {
         const decoded = jwt.verify(
           refreshToken,
-          process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+          process.env.JWT_REFRESH_SECRET,
         );
 
         if (decoded.tokenId) {
@@ -937,12 +992,11 @@ async function requestEmailVerification(req, res) {
       });
     }
 
-    const emailVerificationToken = await sendVerificationEmail(req, account);
+    await sendVerificationOtp(req, account);
 
     return res.status(200).json({
       success: true,
-      message: "Verification email sent successfully",
-      ...(shouldExposeDevTokens() ? { emailVerificationToken } : {}),
+      message: "Verification OTP sent successfully",
     });
   } catch (error) {
     console.error("Error requesting email verification:", error);
@@ -998,19 +1052,119 @@ async function verifyEmail(req, res) {
   }
 }
 
+async function verifyOtp(req, res) {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and 6-digit OTP code are required",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const hashedOtp = hashToken(otp.trim());
+
+    let user = await userModel
+      .findOne({ email: normalizedEmail, emailOtp: hashedOtp, emailOtpExpires: { $gt: new Date() } })
+      .select("+emailOtp +emailOtpExpires");
+
+    let isSeller = false;
+    let account = user;
+
+    if (!account) {
+      account = await sellerModel
+        .findOne({ email: normalizedEmail, emailOtp: hashedOtp, emailOtpExpires: { $gt: new Date() } })
+        .select("+emailOtp +emailOtpExpires");
+      isSeller = !!account;
+    }
+
+    if (!account) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP code. Please request a new code.",
+      });
+    }
+
+    account.emailVerified = true;
+    account.emailOtp = undefined;
+    account.emailOtpExpires = undefined;
+    await account.save();
+
+    await publishUserEvent(USER_UPDATED_EVENT, account, isSeller, ["emailVerified"]);
+
+    const { accessToken, refreshToken } = await createAuthTokens(account);
+    setAuthCookies(res, accessToken, refreshToken);
+
+    return res.status(200).json({
+      success: true,
+      message: "Account verified successfully!",
+      [isSeller ? "seller" : "user"]: buildAccountPayload(account, isSeller),
+      token: accessToken,
+      accessToken,
+    });
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error verifying OTP code",
+    });
+  }
+}
+
+async function resendOtp(req, res) {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const { account } = await findAccountByEmail(email);
+
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: "Account with this email was not found",
+      });
+    }
+
+    await sendVerificationOtp(req, account);
+
+    return res.status(200).json({
+      success: true,
+      message: "New 6-digit OTP sent to your email",
+    });
+  } catch (error) {
+    console.error("Error resending OTP:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error resending OTP",
+    });
+  }
+}
+
 async function forgotPassword(req, res) {
   try {
     const { account } = await findAccountByEmail(req.body.email);
 
-    let passwordResetToken;
-    if (account) {
-      passwordResetToken = await sendPasswordResetEmail(req, account);
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: "No account found with this email address. Please check your email or sign up.",
+      });
     }
+
+    const passwordResetToken = await sendPasswordResetEmail(req, account);
 
     return res.status(200).json({
       success: true,
-      message: "If an account exists with this email, a password reset link has been sent",
-      ...(account && shouldExposeDevTokens() ? { passwordResetToken } : {}),
+      message: "Password reset link has been sent to your email address.",
+      ...(shouldExposeDevTokens() ? { passwordResetToken } : {}),
     });
   } catch (error) {
     console.error("Error requesting password reset:", error);
@@ -1272,6 +1426,8 @@ module.exports = {
   logoutAllDevices,
   requestEmailVerification,
   verifyEmail,
+  verifyOtp,
+  resendOtp,
   forgotPassword,
   resetPassword
 };

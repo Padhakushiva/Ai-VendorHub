@@ -1,0 +1,31 @@
+
+> product-frontend@0.0.0 dev
+> vite
+
+Port 5174 is in use, trying another one...
+Port 5175 is in use, trying another one...
+Port 5176 is in use, trying another one...
+Port 5177 is in use, trying another one...
+Port 5178 is in use, t9:47:29 AM [vite] http proxy error: /ai/product/6a6af9c685f1688fa09eb773/insights
+Error: socket hang up
+    at Socket.socketOnEnd (node:_http_client:617:25)
+    at Socket.emit (node:events:521:24)
+    at endReadableNT10:06:33 AM [vite] (client) hmr update /src/index.css, /src/components/SellerWorkspace.jsx, /src/pages/CartPage.jsx
+s:90:21)
+9:47:29 AM [vite] http proxy error: /ai/product/6a6af9c685f1688fa09eb775/insights
+Error: socket hang up
+    at Socket.socketOnEnd (node:_http_client:617:25)
+    at Socket.emit (node:events:521:24)
+    at endReadableNT (node:internal/streams/readable:1729:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+9:47:29 AM [vite] (client) [console.error] Failed to fetch AI insights SyntaxError: Unexpected end of JSON input
+    at http://localhost:5174/src/pages/ProductDetail.jsx?t=1785439510198:67:128
+9:47:29 AM [vite] (client) [console.error] Failed to fetch AI insights SyntaxError: Unexpected end of JSON input
+    at http://localhost:5174/src/pages/ProductDetail.jsx?t=1785439510198:67:128
+9:47:36 AM [vite] http proxy error: /ai/product/6a6af9c685f1688fa09eb773/insights
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1194:18)
+    at afterConnectMultiple (node:net:1784:7)
+9:47:36 AM [vite] (client) [console.error] Failed to fetch AI insights SyntaxError: Unexpected end of JSON input
+    at http://localhost:5174/src/pages/ProductDetail.jsx?t=1785439510198:67:128
+10:06:33 AM [vite] (client) hmr update /src/index.css, /src/pages/CartPage.jsx, /src/components/SellerWorkspace.jsx

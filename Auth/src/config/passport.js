@@ -101,7 +101,7 @@ const publishUserEvent = async (eventName, account, accountType = 'user', change
 };
 
 if (isGoogleAuthConfigured()) {
-  passport.use(new GoogleStrategy({
+  const googleStrategy = new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback',
@@ -184,7 +184,19 @@ if (isGoogleAuthConfigured()) {
     } catch (error) {
       return done(error);
     }
-  }));
+  });
+
+  const originalGetOAuthAccessToken = googleStrategy._oauth2.getOAuthAccessToken;
+  googleStrategy._oauth2.getOAuthAccessToken = function (code, params, callback) {
+    originalGetOAuthAccessToken.call(this, code, params, (err, accessToken, refreshToken, results) => {
+      if (err) {
+        console.error('[Google OAuth Token Error Details]:', err.statusCode, err.data || err.message);
+      }
+      callback(err, accessToken, refreshToken, results);
+    });
+  };
+
+  passport.use(googleStrategy);
 }
 
 module.exports = {

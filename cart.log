@@ -1,0 +1,32 @@
+
+> cart@1.0.0 dev
+> npx nodemon server.js
+
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node server.js`[39m
+◇ injected env (12) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Cart Server is running on port 3002
+Connected to MongoDB
+node:events:487
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: Heartbeat timeout
+    at Heart.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/cart/node_modules/amqplib/lib/connection.js:379:21)
+    at Heart.emit (node:events:509:28)
+    at Heart.runHeartbeat (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/cart/node_modules/amqplib/lib/heartbeat.js:88:7)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Emitted 'error' event on ChannelModel instance at:
+    at Connection.emit (node:events:509:28)
+    at Heart.<anonymous> (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/cart/node_modules/amqplib/lib/connection.js:380:14)
+    at Heart.emit (node:events:509:28)
+    at Heart.runHeartbeat (/Users/shivachoudhry/Downloads/Ai-VendorHub-master/cart/node_modules/amqplib/lib/heartbeat.js:88:7)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+
+Node.js v24.18.0
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m

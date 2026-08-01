@@ -17,7 +17,7 @@ const clearStoredAccessToken = () => localStorage.removeItem(ACCESS_TOKEN_KEY);
 export const api = axios.create({
   baseURL: import.meta.env.VITE_AUTH_API_URL || '',
   withCredentials: true,
-  timeout: 8000,
+  timeout: 15000,
 });
 
 api.interceptors.request.use((config) => {
@@ -129,16 +129,25 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/api/auth/register', formData);
       if (response.data.success) {
         const userData = response.data.user;
-        const accessToken = response.data.accessToken || response.data.token;
-        storeAccessToken(accessToken);
-        setUser(userData);
-        setIsAuthenticated(true);
-        return { success: true, user: userData, accessToken, devToken: response.data.emailVerificationToken };
+        return {
+          success: true,
+          user: userData,
+          email: response.data.email || formData.email,
+          requiresOtp: true,
+        };
       }
       return { success: false, message: response.data.message || 'Registration failed' };
     } catch (err) {
       const message = err.response?.data?.message || 'Registration failed';
       setError(message);
+      if (err.response?.data?.requiresOtp) {
+        return {
+          success: false,
+          requiresOtp: true,
+          email: err.response.data.email || formData.email,
+          message,
+        };
+      }
       return { success: false, message };
     }
   };
@@ -150,16 +159,25 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/api/auth/register/seller', formData);
       if (response.data.success) {
         const userData = response.data.seller;
-        const accessToken = response.data.accessToken || response.data.token;
-        storeAccessToken(accessToken);
-        setUser(userData);
-        setIsAuthenticated(true);
-        return { success: true, user: userData, accessToken, devToken: response.data.emailVerificationToken };
+        return {
+          success: true,
+          user: userData,
+          email: response.data.email || formData.email,
+          requiresOtp: true,
+        };
       }
       return { success: false, message: response.data.message || 'Registration failed' };
     } catch (err) {
       const message = err.response?.data?.message || 'Registration failed';
       setError(message);
+      if (err.response?.data?.requiresOtp) {
+        return {
+          success: false,
+          requiresOtp: true,
+          email: err.response.data.email || formData.email,
+          message,
+        };
+      }
       return { success: false, message };
     }
   };
@@ -197,8 +215,7 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/api/auth/verify-email/request');
       return { 
         success: true, 
-        message: response.data.message,
-        devToken: response.data.emailVerificationToken 
+        message: response.data.message
       };
     } catch (err) {
       return { success: false, message: err.response?.data?.message || 'Verification request failed' };
@@ -221,14 +238,47 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Verify 6-digit OTP
+  const verifyOtp = async (email, otp) => {
+    setError(null);
+    try {
+      const response = await api.post('/api/auth/verify-otp', { email, otp });
+      if (response.data.success) {
+        const userData = response.data.user || response.data.seller;
+        const accessToken = response.data.accessToken || response.data.token;
+        storeAccessToken(accessToken);
+        setUser(userData);
+        setIsAuthenticated(true);
+        return { success: true, user: userData, accessToken, message: response.data.message };
+      }
+      return { success: false, message: response.data.message || 'OTP verification failed' };
+    } catch (err) {
+      const message = err.response?.data?.message || 'Invalid or expired OTP code';
+      setError(message);
+      return { success: false, message };
+    }
+  };
+
+  // Resend 6-digit OTP
+  const resendOtp = async (email) => {
+    try {
+      const response = await api.post('/api/auth/resend-otp', { email });
+      return {
+        success: true,
+        message: response.data.message
+      };
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Failed to resend OTP' };
+    }
+  };
+
   // Forgot password
   const forgotPassword = async (email) => {
     try {
       const response = await api.post('/api/auth/password/forgot', { email });
       return { 
         success: true, 
-        message: response.data.message,
-        devToken: response.data.passwordResetToken 
+        message: response.data.message
       };
     } catch (err) {
       return { success: false, message: err.response?.data?.message || 'Request failed' };
@@ -329,6 +379,8 @@ export const AuthProvider = ({ children }) => {
         logoutAll,
         requestVerification,
         verifyEmail,
+        verifyOtp,
+        resendOtp,
         forgotPassword,
         resetPassword,
         updateProfile,

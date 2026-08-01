@@ -12,7 +12,7 @@ class ProductComparisonService {
     if (process.env.GOOGLE_API_KEY) {
       try {
         this.model = new ChatGoogleGenerativeAI({
-          model: "gemini-2.5-flash",
+          model: "gemini-flash-latest",
           temperature: 0.4,
           apiKey: process.env.GOOGLE_API_KEY,
           maxOutputTokens: 2048,

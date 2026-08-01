@@ -9,6 +9,10 @@ const corsOptions = {
     credentials: true,
 };
 
+app.use((req, res, next) => {
+    console.log(`[PAYMENT] ${req.method} ${req.url}`);
+    next();
+});
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());

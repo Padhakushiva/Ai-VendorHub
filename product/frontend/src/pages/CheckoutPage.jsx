@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   ChevronRight,
   CreditCard,
-  FlaskConical,
   Loader2,
   LockKeyhole,
   MapPin,
@@ -40,12 +39,6 @@ const PAYMENT_METHODS = [
     label: 'Cash',
     detail: 'Pay on delivery',
     icon: Banknote,
-  },
-  {
-    id: 'test_success',
-    label: 'Test success',
-    detail: 'Local fake payment',
-    icon: FlaskConical,
   },
 ];
 
@@ -169,8 +162,6 @@ export default function CheckoutPage() {
   const [message, setMessage] = useState('');
   const [pincodeMessage, setPincodeMessage] = useState('');
   const [lookingUpPincode, setLookingUpPincode] = useState(false);
-  const [completedOrder, setCompletedOrder] = useState(null);
-  const [testPaymentOrder, setTestPaymentOrder] = useState(null);
   const isBuyer = isAuthenticated && user?.role === 'user';
 
   const totals = cart.totals || {};
@@ -201,25 +192,30 @@ export default function CheckoutPage() {
       try {
         setLookingUpPincode(true);
         setPincodeMessage('Finding district...');
-        const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`, {
+        const response = await fetch(`https://api.zippopotam.us/IN/${pincode}`, {
           signal: controller.signal,
         });
+        
+        if (!response.ok) {
+          setPincodeMessage('No district found for this pincode. You can enter it manually.');
+          return;
+        }
+        
         const data = await response.json();
-        const result = Array.isArray(data) ? data[0] : null;
-        const postOffice = result?.PostOffice?.[0];
+        const place = data?.places?.[0];
 
-        if (result?.Status !== 'Success' || !postOffice) {
+        if (!place) {
           setPincodeMessage('No district found for this pincode. You can enter it manually.');
           return;
         }
 
         setAddress((current) => ({
           ...current,
-          city: postOffice.District || current.city,
-          state: postOffice.State || current.state,
-          country: postOffice.Country || current.country || 'India',
+          city: place["place name"] || current.city,
+          state: place.state || current.state,
+          country: data.country || current.country || 'India',
         }));
-        setPincodeMessage(`${postOffice.District}, ${postOffice.State} selected`);
+        setPincodeMessage(`${place["place name"]}, ${place.state} selected`);
       } catch (error) {
         if (error.name !== 'AbortError') {
           setPincodeMessage('Could not auto-select district. You can enter it manually.');
@@ -326,28 +322,11 @@ export default function CheckoutPage() {
       if (!orderId) {
         throw new Error('Order created without an id.');
       }
-      if (method === 'test_success') {
-        setTestPaymentOrder({
-          id: orderId,
-          order,
-          amount: payableTotal,
-          currency: totals.currency || 'INR',
-        });
-        setCompletedOrder(order);
-        setMessage('Development payment popup opened. Confirm success to complete the test payment.');
-        await fetchCart();
-        return;
-      }
       const paymentResult = await startPayment(orderId);
-      setCompletedOrder(order);
-      if (method === 'cod') {
-        setMessage('Order placed. Pay when your package arrives.');
-      } else if (paymentResult?.testMode) {
-        setMessage('Test payment completed successfully. No real money was charged.');
-      } else if (paymentResult?.checkoutPending) {
-        setMessage('Order placed and payment order created. Add the Razorpay checkout script to open the payment window.');
+      if (paymentResult.skipped || !paymentResult.checkoutPending) {
+        navigate(`/order-success/${orderId}`);
       } else {
-        setMessage('Order placed and payment started successfully.');
+        setMessage('Order placed and payment order created. Add the Razorpay checkout script to open the payment window.');
       }
       await fetchCart();
     } catch (error) {
@@ -355,29 +334,6 @@ export default function CheckoutPage() {
     } finally {
       setBusy(false);
     }
-  };
-
-  const handleTestPaymentSuccess = async () => {
-    if (!testPaymentOrder?.id) return;
-
-    try {
-      setBusy(true);
-      setMessage('');
-      await paymentApi.post(`/test-success/${testPaymentOrder.id}`);
-      setCompletedOrder(testPaymentOrder.order);
-      setTestPaymentOrder(null);
-      setMessage('Test payment completed successfully. No real money was charged.');
-    } catch (error) {
-      setMessage(getErrorMessage(error, 'Unable to complete test payment right now.'));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const closeTestPaymentPopup = () => {
-    if (busy) return;
-    setTestPaymentOrder(null);
-    setMessage('Test payment popup closed. The order is created, but payment is not completed.');
   };
 
   if (!isAuthenticated) {
@@ -406,7 +362,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!cartLoading && cart.items.length === 0 && !completedOrder) {
+  if (!cartLoading && cart.items.length === 0) {
     return (
       <div className="min-h-screen bg-[#f6f4ee] px-3 py-8 sm:px-6 lg:px-10">
         <section className="mx-auto max-w-3xl rounded-[30px] border border-stone-200 bg-white p-8 text-center shadow-sm">
@@ -454,22 +410,6 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {completedOrder && (
-          <div className="mt-8 rounded-[28px] border border-stone-200 bg-emerald-700 p-6 shadow-sm">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="h-8 w-8 text-stone-950" />
-                  <h2 className="text-2xl font-black text-stone-950">Checkout started</h2>
-                </div>
-                <p className="mt-2 font-bold text-black/65">Order {completedOrder._id || completedOrder.id} is ready in your account.</p>
-              </div>
-              <Link to="/" className="inline-flex items-center justify-center gap-2 rounded-full border border-stone-200 bg-white px-5 py-3 text-sm font-black text-stone-950 shadow-sm transition hover:-translate-y-0.5">
-                Shop more <ChevronRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        )}
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_390px]">
           <div className="space-y-6">
@@ -594,7 +534,7 @@ export default function CheckoutPage() {
               className="mt-5 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-stone-200 bg-emerald-700 px-5 text-sm font-black text-stone-950 shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55"
             >
               {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <BadgeCheck className="h-5 w-5" />}
-              {method === 'cod' ? 'Place COD order' : method === 'test_success' ? 'Place test order' : 'Place order and pay'}
+              {method === 'cod' ? 'Place COD order' : 'Place order and pay'}
             </button>
 
             <div className="mt-5 flex items-center gap-3 rounded-[18px] bg-[#151515] p-4 text-white">
@@ -605,51 +545,6 @@ export default function CheckoutPage() {
         </div>
       </section>
 
-      {testPaymentOrder && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6">
-          <section className="w-full max-w-md rounded-[30px] border border-stone-200 bg-white p-5 text-stone-950 shadow-sm">
-            <div className="rounded-[24px] border border-stone-200 bg-amber-50 p-5">
-              <span className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.14em]">
-                <FlaskConical className="h-4 w-4" />
-                Development mode
-              </span>
-              <h2 className="mt-4 text-3xl font-black leading-none">Fake payment popup</h2>
-              <p className="mt-2 text-sm font-bold text-stone-600">Use this only for local checkout testing.</p>
-            </div>
-
-            <div className="mt-5 rounded-[22px] border border-stone-200 bg-[#f6f4ee] p-4">
-              <SummaryRow label="Order ID" value={testPaymentOrder.id.slice(-8).toUpperCase()} />
-              <div className="my-3 h-px bg-black/15" />
-              <SummaryRow label="Amount" value={formatPrice(testPaymentOrder.amount, testPaymentOrder.currency)} strong />
-            </div>
-
-            <div className="mt-4 flex items-center gap-3 rounded-[18px] bg-[#151515] p-4 text-white">
-              <ShieldCheck className="h-5 w-5 shrink-0 text-[#24c486]" />
-              <p className="text-xs font-bold text-white/70">This marks payment successful in your local Payment service. No Razorpay charge is made.</p>
-            </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={closeTestPaymentPopup}
-                className="inline-flex h-12 items-center justify-center rounded-full border border-stone-200 bg-white px-5 text-sm font-black text-stone-950 shadow-sm transition hover:-translate-y-0.5 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={handleTestPaymentSuccess}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-stone-200 bg-emerald-700 px-5 text-sm font-black text-stone-950 shadow-sm transition hover:-translate-y-0.5 disabled:opacity-50"
-              >
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                Mark successful
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
     </div>
   );
 }

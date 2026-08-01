@@ -116,6 +116,7 @@ export default function SellerWorkspace({ standalone = false }) {
   const [activeView, setActiveView] = useState('overview');
   const [inventorySearch, setInventorySearch] = useState('');
   const [stockFilter, setStockFilter] = useState('all');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const isSeller = isAuthenticated && ['seller', 'admin'].includes(user?.role);
   const isAdmin = isAuthenticated && user?.role === 'admin';
@@ -488,7 +489,11 @@ export default function SellerWorkspace({ standalone = false }) {
     if (result.success) {
       setForm(emptyForm);
       setImageFiles([]);
-      setActiveView('inventory');
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setActiveView('inventory');
+      }, 3000);
     }
   };
 
@@ -613,6 +618,13 @@ export default function SellerWorkspace({ standalone = false }) {
 
   return (
     <section id="seller-workspace" className={`${standalone ? 'min-h-screen bg-[radial-gradient(circle_at_8%_10%,rgba(245,158,11,0.10),transparent_28%),radial-gradient(circle_at_92%_8%,rgba(16,185,129,0.10),transparent_30%),linear-gradient(135deg,#fbfaf7_0%,#f3efe5_48%,#eef5ed_100%)]' : ''} px-0 py-3 sm:px-1 lg:px-1.5`}>
+      {showSuccess && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
+          <CheckCircle2 className="h-24 w-24 text-[#00ff00] mb-6 animate-bounce" />
+          <h1 className="text-4xl md:text-6xl font-black text-[#00ff00] text-center tracking-tight">Product Added Successfully</h1>
+          <p className="mt-4 text-[#00ff00] text-lg opacity-80 font-bold">Your new product is now live.</p>
+        </div>
+      )}
       <div className="vendorhub-glass-card mx-auto w-full max-w-none overflow-hidden rounded-[2rem]">
         <div className="relative overflow-hidden border-b border-white/55 bg-stone-950 p-6 text-white sm:p-8 lg:p-10 xl:p-12">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_8%_10%,rgba(245,158,11,0.20),transparent_26%),radial-gradient(circle_at_86%_20%,rgba(16,185,129,0.24),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.03)_42%,rgba(0,0,0,0.46))]" />

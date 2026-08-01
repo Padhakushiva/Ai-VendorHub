@@ -36,11 +36,19 @@ router.get('/auth/verify-email/:token', authController.verifyEmail);
 // POST /api/auth/verify-email/:token
 router.post('/auth/verify-email/:token', authController.verifyEmail);
 
+// POST /api/auth/verify-otp
+router.post('/auth/verify-otp', emailRateLimiter, authController.verifyOtp);
+
+// POST /api/auth/resend-otp
+router.post('/auth/resend-otp', emailRateLimiter, authController.resendOtp);
+
 // POST /api/auth/password/forgot
 router.post('/auth/password/forgot', emailRateLimiter, validatorMiddleware.forgotPasswordValidation, authController.forgotPassword);
+router.post('/auth/forgot-password', emailRateLimiter, validatorMiddleware.forgotPasswordValidation, authController.forgotPassword);
 
 // POST /api/auth/password/reset/:token
 router.post('/auth/password/reset/:token', authRateLimiter, validatorMiddleware.resetPasswordValidation, authController.resetPassword);
+router.post('/auth/reset-password/:token', authRateLimiter, validatorMiddleware.resetPasswordValidation, authController.resetPassword);
 
 // POST /api/auth/refresh
 router.post('/auth/refresh', authController.refreshAccessToken);
@@ -79,7 +87,8 @@ router.get('/auth/google', (req, res, next) => {
     return passport.authenticate('google', {
         scope: ['profile', 'email'],
         session: false,
-        state: role
+        state: role,
+        prompt: 'select_account'
     })(req, res, next);
 });
 
@@ -95,11 +104,15 @@ router.get('/auth/google/callback', (req, res, next) => {
     const failureRedirect = process.env.GOOGLE_AUTH_FAILURE_REDIRECT
         || `${process.env.CLIENT_BASE_URL || 'http://localhost:5173'}/login?google=failed`;
 
-    return passport.authenticate('google', {
-        session: false,
-        failureRedirect
+    passport.authenticate('google', { session: false }, (err, user, info) => {
+        if (err || !user) {
+            console.error('Google OAuth error:', err?.message || info?.message, err?.oauthErrorData || '');
+            return res.redirect(failureRedirect);
+        }
+        req.user = user;
+        return authController.googleAuthCallback(req, res, next);
     })(req, res, next);
-}, authController.googleAuthCallback);
+});
 
 // GET /api/auth/users/me/addresses
 router.get('/auth/users/me/addresses', authMiddleware, authController.getUserAddresses);
